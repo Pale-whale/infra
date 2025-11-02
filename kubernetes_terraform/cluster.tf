@@ -109,15 +109,6 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
 
   initialization {
     datastore_id = var.default_cloud_init_datastore
-    ip_config {
-      ipv4 {
-        address = "${each.value.ip}/24"
-        gateway = var.default_gateway
-      }
-    }
-    dns {
-      servers = var.dns
-    }
 
     user_account {
       username = var.default_user_account.username
@@ -229,15 +220,6 @@ resource "proxmox_virtual_environment_vm" "worker" {
 
   initialization {
     datastore_id = var.default_cloud_init_datastore
-    ip_config {
-      ipv4 {
-        address = "${each.value.ip}/24"
-        gateway = var.default_gateway
-      }
-    }
-    dns {
-      servers = var.dns
-    }
 
     user_account {
       username = var.default_user_account.username
