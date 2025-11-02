@@ -128,7 +128,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 resource "talos_machine_bootstrap" "bootstrap" {
   depends_on           = [talos_machine_configuration_apply.controlplane]
   client_configuration = talos_machine_secrets.machine_secrets.client_configuration
-  node                 = local.controlplane[0].ip
+  node                 = local.controlplane[keys(local.controlplane)[0]].ip
 }
 
 data "talos_machine_configuration" "workers" {
@@ -257,8 +257,8 @@ resource "talos_machine_configuration_apply" "worker" {
 data "talos_cluster_health" "health" {
   depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
   client_configuration = data.talos_client_configuration.homelab.client_configuration
-  control_plane_nodes  = flatten(local.controlplane[*].ip)
-  worker_nodes         = flatten(local.workers[*].ip)
+  control_plane_nodes  = [for n in local.controlplane: n.ip]
+  worker_nodes         = [for n in local.workers: n.ip]
   endpoints            = data.talos_client_configuration.homelab.endpoints
 }
 
