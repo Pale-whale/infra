@@ -119,7 +119,7 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
 
 resource "talos_machine_configuration_apply" "controlplane" {
   for_each                    = local.controlplane
-  client_configuration        = data.talos_client_configuration.homelab.client_configuration
+  client_configuration        = data.talos_client_configuration.homelab.talos_config
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
   node                        = proxmox_virtual_environment_vm.controlplane[each.key].ipv4_addresses[0][0] #first ip of first network interface
   endpoint                    = proxmox_virtual_environment_vm.controlplane[each.key].ipv4_addresses[0][0] #first ip of first network interface
@@ -127,7 +127,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
 resource "talos_machine_bootstrap" "bootstrap" {
   depends_on           = [talos_machine_configuration_apply.controlplane]
-  client_configuration = data.talos_client_configuration.homelab.client_configuration
+  client_configuration = data.talos_client_configuration.homelab.talos_config
   node                 = proxmox_virtual_environment_vm.controlplane[keys(local.controlplane)[0]].ipv4_addresses[0][0] #first ip of first network interface
 }
 
@@ -248,7 +248,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
 
 resource "talos_machine_configuration_apply" "worker" {
   for_each                    = local.workers
-  client_configuration        = data.talos_client_configuration.homelab.client_configuration
+  client_configuration        = data.talos_client_configuration.homelab.talos_config
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration
   node                        = proxmox_virtual_environment_vm.worker[each.key].ipv4_addresses[0][0] #first ip of first network interface
   endpoint                    = proxmox_virtual_environment_vm.worker[each.key].ipv4_addresses[0][0] #first ip of first network interface
@@ -256,7 +256,7 @@ resource "talos_machine_configuration_apply" "worker" {
 
 data "talos_cluster_health" "health" {
   depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
-  client_configuration = data.data.talos_client_configuration.homelab.client_configuration
+  client_configuration = data.data.talos_client_configuration.homelab.talos_config
   control_plane_nodes  = [for vm in proxmox_virtual_environment_vm.controlplane : vm.ipv4_addresses[0][0]]
   worker_nodes         = [for vm in proxmox_virtual_environment_vm.worker : vm.ipv4_addresses[0][0]]
   endpoints            = data.data.talos_client_configuration.homelab.endpoints
@@ -264,6 +264,6 @@ data "talos_cluster_health" "health" {
 
 resource "talos_cluster_kubeconfig" "kubeconfig" {
   depends_on           = [talos_machine_bootstrap.bootstrap, data.talos_cluster_health.health]
-  client_configuration = data.talos_client_configuration.homelab.client_configuration
+  client_configuration = data.talos_client_configuration.homelab.talos_config
   node                 = local.controlplane[keys(local.controlplane)[0]].ip
 }

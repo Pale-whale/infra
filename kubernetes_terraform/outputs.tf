@@ -1,5 +1,5 @@
 output "talosconfig" {
-  value     = data.talos_client_configuration.talosconfig.talos_config
+  value     = data.talos_client_configuration.homelab.talos_config
   sensitive = true
 }
 
