@@ -8,7 +8,7 @@ bpf:
   hostLegacyRouting: false
   masquerade: true
   preallocateMaps: true
-  tproxy: true
+  tproxy: false
 cgroup:
   autoMount:
     enabled: false
@@ -20,21 +20,17 @@ hubble:
   enabled: false
   ui:
     enabled: false
-installNoConntrackIptablesRules: false
+installNoConntrackIptablesRules: true
 ipam:
-  mode: cluster-pool
-  operator:
-    clusterPoolIPv4PodCIDRList:
-      - "${native_cidr}"
-    clusterPoolIPv4MaskSize: 18
+  mode: kubernetes
 ipv4NativeRoutingCIDR: ${native_cidr}
-kubeProxyReplacement: true
+kubeProxyReplacement: "true"
 loadBalancer:
   algorithm: maglev
   mode: hybrid
-localRedirectPolicy: true
+localRedirectPolicy: false
 localRedirectPolicies:
-  enabled: true
+  enabled: false
 maglev:
   tableSize: 4093
   hashSeed: 'JAeU+bGYbg1OJFJd'
@@ -62,7 +58,6 @@ securityContext:
 serviceAccounts:
   nodeinit:
     enabled: true
-sessionAffinity: true
 tolerations:
   - operator: Exists
   - effect: NoSchedule
