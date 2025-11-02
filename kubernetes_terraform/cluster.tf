@@ -118,8 +118,9 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
 }
 
 resource "talos_machine_configuration_apply" "controlplane" {
+  depends_on                  = [proxmox_virtual_environment_vm.controlplane]
   for_each                    = local.controlplane
-  client_configuration        = data.talos_client_configuration.homelab.client_configuration
+  client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
   node                        = proxmox_virtual_environment_vm.controlplane[each.key].ipv4_addresses[0][0] #first ip of first network interface
   endpoint                    = proxmox_virtual_environment_vm.controlplane[each.key].ipv4_addresses[0][0] #first ip of first network interface
@@ -127,7 +128,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
 resource "talos_machine_bootstrap" "bootstrap" {
   depends_on           = [talos_machine_configuration_apply.controlplane]
-  client_configuration = data.talos_client_configuration.homelab.client_configuration
+  client_configuration = talos_machine_secrets.machine_secrets.client_configuration
   node                 = proxmox_virtual_environment_vm.controlplane[keys(local.controlplane)[0]].ipv4_addresses[0][0] #first ip of first network interface
 }
 
@@ -247,8 +248,9 @@ resource "proxmox_virtual_environment_vm" "worker" {
 }
 
 resource "talos_machine_configuration_apply" "worker" {
+  depends_on                  = [proxmox_virtual_environment_vm.worker, talos_machine_configuration_apply.controlplane]
   for_each                    = local.workers
-  client_configuration        = data.talos_client_configuration.homelab.client_configuration
+  client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration
   node                        = proxmox_virtual_environment_vm.worker[each.key].ipv4_addresses[0][0] #first ip of first network interface
   endpoint                    = proxmox_virtual_environment_vm.worker[each.key].ipv4_addresses[0][0] #first ip of first network interface
@@ -264,6 +266,6 @@ data "talos_cluster_health" "health" {
 
 resource "talos_cluster_kubeconfig" "kubeconfig" {
   depends_on           = [talos_machine_bootstrap.bootstrap, data.talos_cluster_health.health]
-  client_configuration = data.talos_client_configuration.homelab.client_configuration
+  client_configuration = talos_machine_secrets.machine_secrets.client_configuration
   node                 = local.controlplane[keys(local.controlplane)[0]].ip
 }
