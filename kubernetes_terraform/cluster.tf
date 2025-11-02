@@ -122,6 +122,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
   node                        = proxmox_virtual_environment_vm.controlplane[each.key].ipv4_addresses[0][0] #first ip of first network interface
+  endpoint                    = proxmox_virtual_environment_vm.controlplane[each.key].ipv4_addresses[0][0] #first ip of first network interface
 }
 
 resource "talos_machine_bootstrap" "bootstrap" {
@@ -250,6 +251,7 @@ resource "talos_machine_configuration_apply" "worker" {
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration
   node                        = proxmox_virtual_environment_vm.worker[each.key].ipv4_addresses[0][0] #first ip of first network interface
+  endpoint                    = proxmox_virtual_environment_vm.worker[each.key].ipv4_addresses[0][0] #first ip of first network interface
 }
 
 data "talos_cluster_health" "health" {
