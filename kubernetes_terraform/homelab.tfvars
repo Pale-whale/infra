@@ -128,6 +128,7 @@ topology = {
           discard           = "on"
           ssd               = true
           iothread          = true
+          size              = 3726
         }
       }
     }
@@ -148,6 +149,7 @@ topology = {
           discard           = "on"
           ssd               = true
           iothread          = true
+          size              = 3726
         }
       }
     }
