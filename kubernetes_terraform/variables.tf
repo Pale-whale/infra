@@ -51,6 +51,11 @@ variable "default_machine" {
   default = "pc"
 }
 
+variable "default_vga" {
+  type    = string
+  default = "virtio"
+}
+
 variable "default_controlplane_cpu" {
   type    = number
   default = 2
@@ -115,6 +120,7 @@ variable "topology" {
       proxmox_node = optional(string)
       cpu          = optional(number)
       memory       = optional(number)
+      vga          = optional(string)
       network_device = optional(object({
         bridge       = optional(string)
         disconnected = optional(bool)
@@ -154,6 +160,7 @@ variable "topology" {
       proxmox_node = optional(string)
       cpu          = optional(number)
       memory       = optional(number)
+      vga          = optional(string)
       network_device = optional(object({
         bridge       = optional(string)
         disconnected = optional(bool)

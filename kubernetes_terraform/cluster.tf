@@ -54,7 +54,7 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
   }
 
   vga {
-    type = "virtio"
+    type = coalesce(each.value.vga, var.default_vga)
   }
 
   serial_device {
@@ -165,7 +165,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
   }
 
   vga {
-    type = "virtio"
+    type = coalesce(each.value.vga, var.default_vga)
   }
 
   serial_device {

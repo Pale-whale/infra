@@ -170,6 +170,7 @@ topology = {
       ip     = "10.60.2.1"
       cpu    = 6
       memory = 8192
+      vga    = "serial0"
       network_device = {
         mac_address = "bc:24:11:82:d1:2d"
       }
