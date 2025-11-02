@@ -6,6 +6,7 @@ kubernetes_version = "v1.34.1"
 talos_schematic = "d3dc673627e9b94c6cd4122289aa52c2484cddb31017ae21b75309846e257d30"
 
 default_gateway = "10.0.0.254"
+dns             = "10.0.0.254"
 kubeapi_address = "10.0.0.69"
 kubeapi_fqdn    = ""
 

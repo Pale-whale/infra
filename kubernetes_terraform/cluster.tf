@@ -115,6 +115,9 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
         gateway = var.default_gateway
       }
     }
+    dns {
+      servers = var.dns
+    }
   }
 }
 
@@ -226,6 +229,9 @@ resource "proxmox_virtual_environment_vm" "worker" {
         address = "${each.value.ip}/24"
         gateway = var.default_gateway
       }
+    }
+    dns {
+      servers = var.dns
     }
   }
 

@@ -20,6 +20,11 @@ variable "default_gateway" {
   type = string
 }
 
+variable "dns" {
+  type    = list(string)
+  default = ["1.1.1.1"]
+}
+
 variable "kubeapi_address" {
   type = string
 }
