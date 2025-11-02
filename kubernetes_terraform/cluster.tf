@@ -122,13 +122,13 @@ resource "talos_machine_configuration_apply" "controlplane" {
   for_each                    = local.controlplane
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
-  node                        = [for e in flatten(proxmox_virtual_environment_vm.controlplane[each.key].ipv4_addresses) : e if e != "127.0.0.1"][0] # first non-loopback ip of first network interface
+  node                        = local.controlplane[each.key].ip
 }
 
 resource "talos_machine_bootstrap" "bootstrap" {
   depends_on           = [talos_machine_configuration_apply.controlplane]
   client_configuration = talos_machine_secrets.machine_secrets.client_configuration
-  node                 = [for e in flatten(proxmox_virtual_environment_vm.controlplane[keys(local.controlplane)[0]].ipv4_addresses) : e if e != "127.0.0.1"][0] # first non-loopback ip of first network interface
+  node                 = local.controlplane[0].ip
 }
 
 data "talos_machine_configuration" "workers" {
@@ -251,14 +251,14 @@ resource "talos_machine_configuration_apply" "worker" {
   for_each                    = local.workers
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration
-  node                        = [for e in flatten(proxmox_virtual_environment_vm.worker[each.key].ipv4_addresses) : e if e != "127.0.0.1"][0] # first non-loopback ip of first network interface
+  node                        = local.workers[each.key].ip
 }
 
 data "talos_cluster_health" "health" {
   depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
   client_configuration = data.talos_client_configuration.homelab.client_configuration
-  control_plane_nodes  = [for vm in proxmox_virtual_environment_vm.controlplane : [for e in flatten(vm.ipv4_addresses) : e if e != "127.0.0.1"][0]]
-  worker_nodes         = [for vm in proxmox_virtual_environment_vm.worker : [for e in flatten(vm.ipv4_addresses) : e if e != "127.0.0.1"][0]]
+  control_plane_nodes  = flatten(local.controlplane[*].ip)
+  worker_nodes         = flatten(local.workers[*].ip)
   endpoints            = data.talos_client_configuration.homelab.endpoints
 }
 
