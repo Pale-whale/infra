@@ -54,7 +54,7 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
     type = "virtio"
   }
   
-  scsi_controller {
+  scsi_hardware {
     type = "virtio-scsi-single"
   }
   
@@ -167,7 +167,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
     type = "virtio"
   }
 
-  scsi_controller {
+  scsi_hardware {
     type = "virtio-scsi-single"
   }
 
