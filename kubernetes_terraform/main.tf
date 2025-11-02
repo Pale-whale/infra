@@ -1,5 +1,5 @@
 resource "proxmox_virtual_environment_download_file" "talos_nocloud_image" {
-  content_type = "iso"
+  content_type = "import"
   datastore_id = "local"
   node_name    = var.default_proxmox_node
 
