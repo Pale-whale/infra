@@ -65,6 +65,11 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
     enabled = true
   }
 
+  user_account {
+    username = var.default_user_account.username
+    password = var.default_user_account.password
+  }
+
   network_device {
     bridge       = coalesce(each.value.network_device.bridge, var.default_network_device.bridge)
     disconnected = try(coalesce(each.value.network_device.disconnected, var.default_network_device.disconnected), null)
@@ -178,6 +183,11 @@ resource "proxmox_virtual_environment_vm" "worker" {
 
   agent {
     enabled = true
+  }
+
+  user_account {
+    username = var.default_user_account.username
+    password = var.default_user_account.password
   }
 
   network_device {

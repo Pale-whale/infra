@@ -39,6 +39,13 @@ variable "default_proxmox_node" {
   default = ""
 }
 
+variable "default_user_account" {
+  type = object({
+    username = string
+    password = string
+  })
+}
+
 variable "default_machine" {
   type    = string
   default = "pc"
