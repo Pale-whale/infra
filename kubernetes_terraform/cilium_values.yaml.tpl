@@ -22,7 +22,11 @@ hubble:
     enabled: false
 installNoConntrackIptablesRules: false
 ipam:
-  mode: kubernetes
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - "${native_cidr}"
+    clusterPoolIPv4MaskSize: 18
 ipv4NativeRoutingCIDR: ${native_cidr}
 kubeProxyReplacement: true
 loadBalancer:
