@@ -56,6 +56,21 @@ variable "default_vga" {
   default = "virtio"
 }
 
+variable "default_machine_config_patch" {
+  type    = list(any)
+  default = [{}]
+}
+
+variable "default_controlplane_config_patch" {
+  type    = list(any)
+  default = [{}]
+}
+
+variable "default_workers_config_patch" {
+  type    = list(any)
+  default = [{}]
+}
+
 variable "default_controlplane_cpu" {
   type    = number
   default = 2
@@ -121,6 +136,7 @@ variable "topology" {
       cpu          = optional(number)
       memory       = optional(number)
       vga          = optional(string)
+      config_patch = optional(list(any), [{}])
       network_device = optional(object({
         bridge       = optional(string)
         disconnected = optional(bool)
@@ -161,6 +177,7 @@ variable "topology" {
       cpu          = optional(number)
       memory       = optional(number)
       vga          = optional(string)
+      config_patch = optional(list(any), [{}])
       network_device = optional(object({
         bridge       = optional(string)
         disconnected = optional(bool)

@@ -123,6 +123,12 @@ resource "talos_machine_configuration_apply" "controlplane" {
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
   node                        = local.controlplane[each.key].ip
+
+  config_patches = concat(
+    [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
+    [for p in var.default_controlplane_config_patch : yamlencode(p) if length(p) > 0],
+    [for p in each.value.config_patch : yamlencode(p) if length(p) > 0],
+  )
 }
 
 resource "talos_machine_bootstrap" "bootstrap" {
@@ -252,13 +258,19 @@ resource "talos_machine_configuration_apply" "worker" {
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration
   node                        = local.workers[each.key].ip
+
+  config_patches = concat(
+    [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
+    [for p in var.default_workers_config_patch : yamlencode(p) if length(p) > 0],
+    [for p in each.value.config_patch : yamlencode(p) if length(p) > 0],
+  )
 }
 
 data "talos_cluster_health" "health" {
   depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
   client_configuration = data.talos_client_configuration.homelab.client_configuration
-  control_plane_nodes  = [for n in local.controlplane: n.ip]
-  worker_nodes         = [for n in local.workers: n.ip]
+  control_plane_nodes  = [for n in local.controlplane : n.ip]
+  worker_nodes         = [for n in local.workers : n.ip]
   endpoints            = data.talos_client_configuration.homelab.endpoints
 }
 
