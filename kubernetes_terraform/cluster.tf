@@ -51,7 +51,15 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
   }
 
   vga {
-    type = "none"
+    type = "virtio"
+  }
+  
+  scsi_controller {
+    type = "virtio-scsi-single"
+  }
+  
+  serial_device {
+    device = "socket"
   }
   
   agent {
@@ -156,9 +164,17 @@ resource "proxmox_virtual_environment_vm" "worker" {
   }
 
   vga {
-    type = "none"
+    type = "virtio"
   }
 
+  scsi_controller {
+    type = "virtio-scsi-single"
+  }
+
+  serial_device {
+    device = "socket"
+  }
+  
   agent {
     enabled = true
   }
