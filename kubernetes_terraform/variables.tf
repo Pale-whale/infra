@@ -34,6 +34,31 @@ variable "kubeapi_fqdn" {
   default = "kubeapi.local"
 }
 
+variable "deploy_cilium_cni" {
+  type    = bool
+  default = false
+}
+
+variable "cilium_version" {
+  type    = string
+  default = "1.18.2"
+}
+
+variable "pod_subnet" {
+  type    = string
+  default = "10.0.0.0/16"
+}
+
+variable "services_subnet" {
+  type    = string
+  default = "10.1.0.0/16"
+}
+
+variable "native_cidr" {
+  type    = string
+  default = "10.0.0.0/8"
+}
+
 variable "default_proxmox_node" {
   type    = string
   default = ""

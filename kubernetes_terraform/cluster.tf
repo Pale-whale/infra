@@ -17,6 +17,26 @@ locals {
     for name, spec in var.topology.workers :
     name => spec
   }
+
+  disable_flanel_controlplane_patch = var.deploy_cilium_cni ? {
+    cluster = {
+      network = {
+        cni = {
+          name = "none"
+        }
+      }
+      proxy = {
+        disabled = true
+      }
+    }
+  } : {}
+  dont_schedule_until_cilium_ready_taint = var.deploy_cilium_cni ? {
+    machine = {
+      nodeTaints = {
+        "node.cilium.io/agent-not-ready" : "true:NoSchedule"
+      }
+    }
+  } : {}
 }
 
 data "talos_machine_configuration" "controlplane" {
@@ -125,7 +145,17 @@ resource "talos_machine_configuration_apply" "controlplane" {
   node                        = local.controlplane[each.key].ip
 
   config_patches = concat(
+    [yamlencode(local.dont_schedule_until_cilium_ready_taint)],
     [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
+    [yamlencode({
+      cluster = {
+        network = {
+          podSubnets     = [var.pod_subnet]
+          serviceSubnets = [var.services_subnet]
+        }
+      }
+    })],
+    [yamlencode(local.disable_flanel_controlplane_patch)],
     [for p in var.default_controlplane_config_patch : yamlencode(p) if length(p) > 0],
     [for p in each.value.config_patch : yamlencode(p) if length(p) > 0],
   )
@@ -260,22 +290,9 @@ resource "talos_machine_configuration_apply" "worker" {
   node                        = local.workers[each.key].ip
 
   config_patches = concat(
+    [yamlencode(local.dont_schedule_until_cilium_ready_taint)],
     [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
     [for p in var.default_workers_config_patch : yamlencode(p) if length(p) > 0],
     [for p in each.value.config_patch : yamlencode(p) if length(p) > 0],
   )
-}
-
-data "talos_cluster_health" "health" {
-  depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
-  client_configuration = data.talos_client_configuration.homelab.client_configuration
-  control_plane_nodes  = [for n in local.controlplane : n.ip]
-  worker_nodes         = [for n in local.workers : n.ip]
-  endpoints            = data.talos_client_configuration.homelab.endpoints
-}
-
-resource "talos_cluster_kubeconfig" "kubeconfig" {
-  depends_on           = [talos_machine_bootstrap.bootstrap, data.talos_cluster_health.health]
-  client_configuration = talos_machine_secrets.machine_secrets.client_configuration
-  node                 = local.controlplane[keys(local.controlplane)[0]].ip
 }
