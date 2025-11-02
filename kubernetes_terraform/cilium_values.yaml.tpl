@@ -1,6 +1,8 @@
 autoDirectNodeRoutes: true
 annotateK8sNode: true
 routingMode: 'native'
+l2podAnnouncements:
+  enabled: true
 bgpControlPlane:
   enabled: true
 bpfClockProbe: true
@@ -28,9 +30,9 @@ kubeProxyReplacement: "true"
 loadBalancer:
   algorithm: maglev
   mode: hybrid
-localRedirectPolicy: false
+localRedirectPolicy: true
 localRedirectPolicies:
-  enabled: false
+  enabled: true
 maglev:
   tableSize: 4093
   hashSeed: 'JAeU+bGYbg1OJFJd'
