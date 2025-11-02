@@ -256,10 +256,10 @@ resource "talos_machine_configuration_apply" "worker" {
 
 data "talos_cluster_health" "health" {
   depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
-  client_configuration = data.data.talos_client_configuration.homelab.talos_config
+  client_configuration = data.talos_client_configuration.homelab.talos_config
   control_plane_nodes  = [for vm in proxmox_virtual_environment_vm.controlplane : vm.ipv4_addresses[0][0]]
   worker_nodes         = [for vm in proxmox_virtual_environment_vm.worker : vm.ipv4_addresses[0][0]]
-  endpoints            = data.data.talos_client_configuration.homelab.endpoints
+  endpoints            = data.talos_client_configuration.homelab.endpoints
 }
 
 resource "talos_cluster_kubeconfig" "kubeconfig" {
