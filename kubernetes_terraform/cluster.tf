@@ -1,5 +1,5 @@
 resource "talos_machine_secrets" "machine_secrets" {
-  talos_version      = var.talos_version
+  talos_version = var.talos_version
 }
 
 data "talos_client_configuration" "talosconfig" {
@@ -32,14 +32,15 @@ data "talos_machine_configuration" "controlplane" {
 resource "proxmox_virtual_environment_vm" "controlplane" {
   for_each = local.controlplane
 
-  name        = each.key
-  vm_id       = each.value.vm_id
-  description = "Talos Control Plane Node ${each.key} for ${var.cluster_name} Kubernetes Cluster"
-  tags        = ["terraform", var.cluster_name, "talos", "controlplane"]
-  node_name   = coalesce(each.value.proxmox_node, var.default_proxmox_node)
-  on_boot     = true
-  machine     = coalesce(each.value.machine, var.default_machine)
+  name          = each.key
+  vm_id         = each.value.vm_id
+  description   = "Talos Control Plane Node ${each.key} for ${var.cluster_name} Kubernetes Cluster"
+  tags          = ["terraform", var.cluster_name, "talos", "controlplane"]
+  node_name     = coalesce(each.value.proxmox_node, var.default_proxmox_node)
+  on_boot       = true
+  machine       = coalesce(each.value.machine, var.default_machine)
   tablet_device = false
+  scsi_hardware = "virtio-scsi-single"
 
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
@@ -53,15 +54,11 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
   vga {
     type = "virtio"
   }
-  
-  scsi_hardware {
-    type = "virtio-scsi-single"
-  }
-  
+
   serial_device {
     device = "socket"
   }
-  
+
   agent {
     enabled = true
   }
@@ -145,14 +142,15 @@ data "talos_machine_configuration" "workers" {
 resource "proxmox_virtual_environment_vm" "worker" {
   for_each = local.workers
 
-  name        = each.key
-  vm_id       = each.value.vm_id
-  description = "Talos Worker Node ${each.key} for ${var.cluster_name} Kubernetes Cluster"
-  tags        = ["terraform", var.cluster_name, "talos", "worker"]
-  node_name   = coalesce(each.value.proxmox_node, var.default_proxmox_node)
-  on_boot     = true
-  machine     = coalesce(each.value.machine, var.default_machine)
+  name          = each.key
+  vm_id         = each.value.vm_id
+  description   = "Talos Worker Node ${each.key} for ${var.cluster_name} Kubernetes Cluster"
+  tags          = ["terraform", var.cluster_name, "talos", "worker"]
+  node_name     = coalesce(each.value.proxmox_node, var.default_proxmox_node)
+  on_boot       = true
+  machine       = coalesce(each.value.machine, var.default_machine)
   tablet_device = false
+  scsi_hardware = "virtio-scsi-single"
 
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
@@ -167,14 +165,10 @@ resource "proxmox_virtual_environment_vm" "worker" {
     type = "virtio"
   }
 
-  scsi_hardware {
-    type = "virtio-scsi-single"
-  }
-
   serial_device {
     device = "socket"
   }
-  
+
   agent {
     enabled = true
   }
@@ -259,8 +253,8 @@ resource "talos_machine_configuration_apply" "worker" {
 data "talos_cluster_health" "health" {
   depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
   client_configuration = data.talos_client_configuration.talosconfig.client_configuration
-  control_plane_nodes  = [for vm in proxmox_virtual_environment_vm.controlplane: vm.ipv4_addresses[0][0]]
-  worker_nodes         = [for vm in proxmox_virtual_environment_vm.worker: vm.ipv4_addresses[0][0]]
+  control_plane_nodes  = [for vm in proxmox_virtual_environment_vm.controlplane : vm.ipv4_addresses[0][0]]
+  worker_nodes         = [for vm in proxmox_virtual_environment_vm.worker : vm.ipv4_addresses[0][0]]
   endpoints            = data.talos_client_configuration.talosconfig.endpoints
 }
 
