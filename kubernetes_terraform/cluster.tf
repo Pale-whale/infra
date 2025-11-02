@@ -247,6 +247,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
 }
 
 resource "talos_machine_configuration_apply" "worker" {
+  depends on = [talos_machine_configuration_apply.controlplane]
   for_each                    = local.workers
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration
