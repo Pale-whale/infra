@@ -11,6 +11,11 @@ variable "talos_schematic" {
   type = string
 }
 
+variable "extra_talos_filters" {
+  type    = list(string)
+  default = []
+}
+
 variable "kubernetes_version" {
   type    = string
   default = "v1.34.1"

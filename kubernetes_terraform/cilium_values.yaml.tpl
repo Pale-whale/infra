@@ -6,12 +6,16 @@ bgpControlPlane:
 bpfClockProbe: true
 bpf:
   hostLegacyRouting: false
-  masquerade: false
+  masquerade: true
   preallocateMaps: true
   tproxy: true
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: '/sys/fs/cgroup'
 disableEnvoyVersionCheck: true
-k8sServiceHost: ${kubeapi_address}
-k8sServicePort: 6443
+k8sServiceHost: localhost
+k8sServicePort: 7445
 hubble:
   enabled: false
   ui:
@@ -24,13 +28,33 @@ kubeProxyReplacement: true
 loadBalancer:
   algorithm: maglev
   mode: hybrid
-localRedirectPolicy: false
+localRedirectPolicy: true
+localRedirectPolicies:
+  enabled: true
 maglev:
   tableSize: 4093
   hashSeed: 'JAeU+bGYbg1OJFJd'
 operator:
   replicas: 2
   rollOutPods: true
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
 serviceAccounts:
   nodeinit:
     enabled: true

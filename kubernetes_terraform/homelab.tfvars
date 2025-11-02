@@ -3,6 +3,9 @@ cluster_name = "homelab"
 talos_version      = "v1.11.3"
 kubernetes_version = "v1.34.1"
 
+extra_talos_filters = [
+  "i985"
+]
 talos_schematic = "d3dc673627e9b94c6cd4122289aa52c2484cddb31017ae21b75309846e257d30"
 
 default_gateway   = "10.0.0.254"

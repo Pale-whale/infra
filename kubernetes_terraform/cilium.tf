@@ -8,7 +8,6 @@ resource "helm_release" "cilium" {
   version    = var.cilium_version
 
   values = [templatefile("${path.module}/cilium_values.yaml.tpl", {
-    kubeapi_address = var.kubeapi_address
-    native_cidr     = var.native_cidr
+    native_cidr = var.native_cidr
   })]
 }
