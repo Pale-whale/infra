@@ -29,7 +29,8 @@ resource "proxmox_virtual_environment_download_file" "talos_nocloud_image" {
   datastore_id = "local"
   node_name    = var.default_proxmox_node
 
-  url       = data.talos_image_factory_urls.this.urls.iso
+  file_name = "talos-${var.talos_version}-${talos_image_factory_schematic.this.id}-nocloud-amd64.raw"
+  url       = replace(data.talos_image_factory_urls.this.urls.disk_image, "\.xz$", "")
   overwrite = false
 }
 
