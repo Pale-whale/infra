@@ -42,6 +42,8 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
   tablet_device = false
   scsi_hardware = "virtio-scsi-single"
 
+  boot_order = ["scsi1"]
+
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
     type  = "x86-64-v2-AES"
@@ -151,6 +153,8 @@ resource "proxmox_virtual_environment_vm" "worker" {
   machine       = coalesce(each.value.machine, var.default_machine)
   tablet_device = false
   scsi_hardware = "virtio-scsi-single"
+
+  boot_order = ["scsi1"]
 
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
