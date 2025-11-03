@@ -130,6 +130,13 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
   initialization {
     datastore_id = var.default_cloud_init_datastore
 
+    ip_config {
+      ipv4 {
+        address = each.value.ip
+        gateway = var.default_gateway
+      }
+    }
+
     user_account {
       username = var.default_user_account.username
       password = var.default_user_account.password
@@ -160,10 +167,22 @@ resource "talos_machine_configuration_apply" "controlplane" {
             resolveMemberNames   = true
           }
         }
+        network = {
+          hostname = each.key
+          interfaces = [{
+              interface = "eth0"
+              dhcp      = false
+              addresses = ["${local.controlplane[each.key].ip}/24"]
+              routes    = [{
+                gateway = var.default_gateway
+                network = "0.0.0.0/0"
+              }]
+          }]
+        }
         kernel = {
           modules = [{
             name = "br_netfilter"
-            parameters = [ { nf_conntrack_max = 131072 } ]
+            parameters = [ "nf_conntrack_max=131072" ]
           }]
         }
         sysctls = {
@@ -283,6 +302,13 @@ resource "proxmox_virtual_environment_vm" "worker" {
   initialization {
     datastore_id = var.default_cloud_init_datastore
 
+    ip_config {
+      ipv4 {
+        address = each.value.ip
+        gateway = var.default_gateway
+      }
+    }
+
     user_account {
       username = var.default_user_account.username
       password = var.default_user_account.password
@@ -330,6 +356,18 @@ resource "talos_machine_configuration_apply" "worker" {
             forwardKubeDNSToHost = true
             resolveMemberNames   = true
           }
+        }
+        network = {
+          hostname = each.key
+          interfaces = [{
+              interface = "eth0"
+              dhcp      = false
+              addresses = ["${local.workers[each.key].ip}/24"]
+              routes    = [{
+                gateway = var.default_gateway
+                network = "0.0.0.0/0"
+              }]
+          }]
         }
         kernel = {
           modules = [{
