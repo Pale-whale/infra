@@ -28,7 +28,7 @@ machine:
 
 cluster:
   network:
-    podSubnets
+    podSubnets:
       - ${pod_subnet}
     serviceSubnets:
       - ${services_subnet}
