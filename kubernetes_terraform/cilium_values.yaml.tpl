@@ -14,8 +14,8 @@ cgroup:
     enabled: false
   hostRoot: '/sys/fs/cgroup'
 disableEnvoyVersionCheck: true
-k8sServiceHost: 10.0.0.69
-k8sServicePort: 6443
+k8sServiceHost: localhost
+k8sServicePort: 7445
 hubble:
   enabled: false
   ui:
