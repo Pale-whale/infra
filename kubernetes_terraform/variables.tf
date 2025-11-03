@@ -39,6 +39,11 @@ variable "kubeapi_fqdn" {
   default = "kubeapi.local"
 }
 
+variable "kubeapi_extra_sans" {
+  type    = list(string)
+  default = []
+}
+
 variable "deploy_cilium_cni" {
   type    = bool
   default = false
@@ -84,21 +89,6 @@ variable "default_machine" {
 variable "default_vga" {
   type    = string
   default = "virtio"
-}
-
-variable "default_machine_config_patch" {
-  type    = list(any)
-  default = [{}]
-}
-
-variable "default_controlplane_config_patch" {
-  type    = list(any)
-  default = [{}]
-}
-
-variable "default_workers_config_patch" {
-  type    = list(any)
-  default = [{}]
 }
 
 variable "default_controlplane_cpu" {
@@ -166,7 +156,6 @@ variable "topology" {
       cpu          = optional(number)
       memory       = optional(number)
       vga          = optional(string)
-      config_patch = optional(list(any), [{}])
       network_device = optional(object({
         bridge       = optional(string)
         disconnected = optional(bool)
@@ -207,7 +196,6 @@ variable "topology" {
       cpu          = optional(number)
       memory       = optional(number)
       vga          = optional(string)
-      config_patch = optional(list(any), [{}])
       network_device = optional(object({
         bridge       = optional(string)
         disconnected = optional(bool)

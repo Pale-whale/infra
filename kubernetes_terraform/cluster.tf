@@ -17,26 +17,6 @@ locals {
     for name, spec in var.topology.workers :
     name => spec
   }
-
-  disable_flanel_controlplane_patch = var.deploy_cilium_cni ? {
-    cluster = {
-      network = {
-        cni = {
-          name = "none"
-        }
-      }
-      proxy = {
-        disabled = true
-      }
-    }
-  } : {}
-  dont_schedule_until_cilium_ready_taint = var.deploy_cilium_cni ? {
-    machine = {
-      nodeTaints = {
-        "node.cilium.io/agent-not-ready" : "true:NoSchedule"
-      }
-    }
-  } : {}
 }
 
 data "talos_machine_configuration" "controlplane" {
@@ -47,101 +27,13 @@ data "talos_machine_configuration" "controlplane" {
 
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
-}
 
-resource "proxmox_virtual_environment_vm" "controlplane" {
-  for_each = local.controlplane
-
-  name          = each.key
-  vm_id         = each.value.vm_id
-  description   = "Talos Control Plane Node ${each.key} for ${var.cluster_name} Kubernetes Cluster"
-  tags          = ["terraform", var.cluster_name, "talos", "controlplane"]
-  node_name     = coalesce(each.value.proxmox_node, var.default_proxmox_node)
-  on_boot       = true
-  machine       = coalesce(each.value.machine, var.default_machine)
-  tablet_device = false
-  scsi_hardware = "virtio-scsi-single"
-
-  boot_order = ["scsi1"]
-
-  cpu {
-    cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
-    type  = "x86-64-v2-AES"
-  }
-
-  memory {
-    dedicated = coalesce(each.value.memory, var.default_controlplane_memory)
-  }
-
-  vga {
-    type = coalesce(each.value.vga, var.default_vga)
-  }
-
-  serial_device {
-    device = "socket"
-  }
-
-  agent {
-    enabled = true
-  }
-
-  network_device {
-    bridge       = coalesce(each.value.network_device.bridge, var.default_network_device.bridge)
-    disconnected = try(coalesce(each.value.network_device.disconnected, var.default_network_device.disconnected), null)
-    enabled      = try(coalesce(each.value.network_device.enabled, var.default_network_device.enabled), null)
-    firewall     = try(coalesce(each.value.network_device.firewall, var.default_network_device.firewall), null)
-    mac_address  = try(coalesce(each.value.network_device.mac_address, var.default_network_device.mac_address), null)
-    model        = try(coalesce(each.value.network_device.model, var.default_network_device.model), null)
-    mtu          = try(coalesce(each.value.network_device.mtu, var.default_network_device.mtu), null)
-    vlan_id      = try(coalesce(each.value.network_device.vlan_id, var.default_network_device.vlan_id), null)
-    trunks       = try(coalesce(each.value.network_device.trunks, var.default_network_device.trunks), null)
-  }
-
-  disk {
-    datastore_id = try(coalesce(each.value.disk.datastore_id, var.default_disk.datastore_id), null)
-    import_from  = proxmox_virtual_environment_download_file.talos_nocloud_image.id
-    file_format  = try(coalesce(each.value.disk.file_format, var.default_disk.file_format), null)
-    interface    = try(coalesce(each.value.disk.interface, var.default_disk.interface), null)
-    size         = try(coalesce(each.value.disk.size, var.default_disk.size), null)
-    discard      = try(coalesce(each.value.disk.discard, var.default_disk.discard), null)
-    ssd          = try(coalesce(each.value.disk.ssd, var.default_disk.ssd), null)
-    iothread     = try(coalesce(each.value.disk.iothread, var.default_disk.iothread), null)
-  }
-
-  dynamic "disk" {
-    for_each = each.value.additional_disks
-    content {
-      datastore_id      = try(disk.value.datastore_id, null)
-      file_format       = try(disk.value.file_format, null)
-      interface         = try(disk.value.interface, null)
-      size              = try(disk.value.size, null)
-      discard           = try(disk.value.discard, null)
-      ssd               = try(disk.value.ssd, null)
-      iothread          = try(disk.value.iothread, null)
-      import_from       = try(disk.value.import_from, null)
-      path_in_datastore = try(disk.value.path_in_datastore, null)
-    }
-  }
-
-  operating_system {
-    type = "l26" # Linux Kernel 2.6 - 5.X.
-  }
-
-  initialization {
-    datastore_id = var.default_cloud_init_datastore
-
-    ip_config {
-      ipv4 {
-        address = "${each.value.ip}/24"
-        gateway = var.default_gateway
-      }
-    }
-
-    user_account {
-      username = var.default_user_account.username
-      password = var.default_user_account.password
-    }
-  }
+  config_patches = [
+    templatefile("${path.module}/talos-config/default.yaml.tpl", {
+      network_gateway = var.default_gateway
+      deploy_cilium_cni = var.deploy_cilium_cni
+    }),
+  ]
 }
 
 resource "talos_machine_configuration_apply" "controlplane" {
@@ -151,58 +43,19 @@ resource "talos_machine_configuration_apply" "controlplane" {
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
   node                        = local.controlplane[each.key].ip
 
-  config_patches = concat(
-    [yamlencode(local.dont_schedule_until_cilium_ready_taint)],
-    [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
-    [yamlencode({
-      machine = {
-        features = {
-          kubePrism = {
-            enabled = true
-            port = 7445
-          }
-          hostDNS = {
-            enabled              = true
-            forwardKubeDNSToHost = true
-            resolveMemberNames   = true
-          }
-        }
-        network = {
-          hostname = each.key
-          interfaces = [{
-              interface = "eth0"
-              dhcp      = false
-              addresses = ["${local.controlplane[each.key].ip}/24"]
-              routes    = [{
-                gateway = var.default_gateway
-                network = "0.0.0.0/0"
-              }]
-          }]
-        }
-        kernel = {
-          modules = [{
-            name = "br_netfilter"
-            parameters = [ "nf_conntrack_max=131072" ]
-          }]
-        }
-        sysctls = {
-          "net.bridge.bridge-nf-call-ip6tables" = "1"
-          "net.bridge.bridge-nf-call-iptables" = "1"
-          "net.ipv4.ip_forward" = "1"
-        }
-      }
-      cluster = {
-        network = {
-          podSubnets     = [var.pod_subnet]
-          serviceSubnets = [var.services_subnet]
-        }
-        allowSchedulingOnControlPlanes = false
-      }
-    })],
-    [yamlencode(local.disable_flanel_controlplane_patch)],
-    [for p in var.default_controlplane_config_patch : yamlencode(p) if length(p) > 0],
-    [for p in each.value.config_patch : yamlencode(p) if length(p) > 0],
-  )
+  config_patches = [
+    templatefile("${path.module}/talos-config/control-plane.yaml.tpl", {
+      kubeapi_fqdn      = var.kubeapi_fqdn
+      kubeapi_address   = var.kubeapi_address
+      extra_sans        = var.kubeapi_extra_sans
+      ipv4_local        = local.controlplane[each.key].ip
+      network_gateway   = var.default_gateway
+      hostname          = each.key
+      network_ip_prefix = "24"
+      pod_subnet        = var.pod_subnet
+      services_subnet    = var.services_subnet
+    })
+  ]
 }
 
 resource "talos_machine_bootstrap" "bootstrap" {
@@ -219,118 +72,13 @@ data "talos_machine_configuration" "workers" {
 
   talos_version      = var.talos_version
   kubernetes_version = var.kubernetes_version
-}
 
-resource "proxmox_virtual_environment_vm" "worker" {
-  for_each = local.workers
-
-  name          = each.key
-  vm_id         = each.value.vm_id
-  description   = "Talos Worker Node ${each.key} for ${var.cluster_name} Kubernetes Cluster"
-  tags          = ["terraform", var.cluster_name, "talos", "worker"]
-  node_name     = coalesce(each.value.proxmox_node, var.default_proxmox_node)
-  on_boot       = true
-  machine       = coalesce(each.value.machine, var.default_machine)
-  tablet_device = false
-  scsi_hardware = "virtio-scsi-single"
-
-  boot_order = ["scsi1"]
-
-  cpu {
-    cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
-    type  = "x86-64-v2-AES"
-  }
-
-  memory {
-    dedicated = coalesce(each.value.memory, var.default_controlplane_memory)
-  }
-
-  vga {
-    type = coalesce(each.value.vga, var.default_vga)
-  }
-
-  serial_device {
-    device = "socket"
-  }
-
-  agent {
-    enabled = true
-  }
-
-  network_device {
-    bridge       = coalesce(each.value.network_device.bridge, var.default_network_device.bridge)
-    disconnected = try(coalesce(each.value.network_device.disconnected, var.default_network_device.disconnected), null)
-    enabled      = try(coalesce(each.value.network_device.enabled, var.default_network_device.enabled), null)
-    firewall     = try(coalesce(each.value.network_device.firewall, var.default_network_device.firewall), null)
-    mac_address  = try(coalesce(each.value.network_device.mac_address, var.default_network_device.mac_address), null)
-    model        = try(coalesce(each.value.network_device.model, var.default_network_device.model), null)
-    mtu          = try(coalesce(each.value.network_device.mtu, var.default_network_device.mtu), null)
-    vlan_id      = try(coalesce(each.value.network_device.vlan_id, var.default_network_device.vlan_id), null)
-    trunks       = try(coalesce(each.value.network_device.trunks, var.default_network_device.trunks), null)
-  }
-
-  disk {
-    datastore_id = try(coalesce(each.value.disk.datastore_id, var.default_disk.datastore_id), null)
-    import_from  = proxmox_virtual_environment_download_file.talos_nocloud_image.id
-    file_format  = try(coalesce(each.value.disk.file_format, var.default_disk.file_format), null)
-    interface    = try(coalesce(each.value.disk.interface, var.default_disk.interface), null)
-    size         = try(coalesce(each.value.disk.size, var.default_disk.size), null)
-    discard      = try(coalesce(each.value.disk.discard, var.default_disk.discard), null)
-    ssd          = try(coalesce(each.value.disk.ssd, var.default_disk.ssd), null)
-    iothread     = try(coalesce(each.value.disk.iothread, var.default_disk.iothread), null)
-  }
-
-  dynamic "disk" {
-    for_each = each.value.additional_disks
-    content {
-      datastore_id      = try(disk.value.datastore_id, null)
-      file_format       = try(disk.value.file_format, null)
-      interface         = try(disk.value.interface, null)
-      size              = try(disk.value.size, null)
-      discard           = try(disk.value.discard, null)
-      ssd               = try(disk.value.ssd, null)
-      iothread          = try(disk.value.iothread, null)
-      import_from       = try(disk.value.import_from, null)
-      path_in_datastore = try(disk.value.path_in_datastore, null)
-    }
-  }
-
-  operating_system {
-    type = "l26" # Linux Kernel 2.6 - 5.X.
-  }
-
-  initialization {
-    datastore_id = var.default_cloud_init_datastore
-
-    ip_config {
-      ipv4 {
-        address = "${each.value.ip}/24"
-        gateway = var.default_gateway
-      }
-    }
-
-    user_account {
-      username = var.default_user_account.username
-      password = var.default_user_account.password
-    }
-  }
-
-  dynamic "usb" {
-    for_each = each.value.usb
-    content {
-      host = usb.value.host
-      usb3 = try(usb.value.usb3, null)
-    }
-  }
-
-  dynamic "hostpci" {
-    for_each = each.value.hostpci
-    content {
-      device = hostpci.value.device
-      id     = try(hostpci.value.id, null)
-      pcie   = try(hostpci.value.pcie, null)
-    }
-  }
+  config_patches = [
+    templatefile("${path.module}/talos-config/default.yaml.tpl", {
+      network_gateway    = var.default_gateway
+      deploy_cilium_cni = var.deploy_cilium_cni
+    }),
+  ]
 }
 
 resource "talos_machine_configuration_apply" "worker" {
@@ -340,48 +88,13 @@ resource "talos_machine_configuration_apply" "worker" {
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration
   node                        = local.workers[each.key].ip
 
-  config_patches = concat(
-    [yamlencode(local.dont_schedule_until_cilium_ready_taint)],
-    [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
-    [for p in var.default_workers_config_patch : yamlencode(p) if length(p) > 0],
-    [yamlencode({
-      machine = {
-        features = {
-          kubePrism = {
-            enabled = true
-            port = 7445
-          }
-          hostDNS = {
-            enabled              = true
-            forwardKubeDNSToHost = true
-            resolveMemberNames   = true
-          }
-        }
-        network = {
-          hostname = each.key
-          interfaces = [{
-              interface = "eth0"
-              dhcp      = false
-              addresses = ["${local.workers[each.key].ip}/24"]
-              routes    = [{
-                gateway = var.default_gateway
-                network = "0.0.0.0/0"
-              }]
-          }]
-        }
-        kernel = {
-          modules = [{
-            name = "br_netfilter"
-            parameters = [ "nf_conntrack_max=131072" ]
-          }]
-        }
-        sysctls = {
-          "net.bridge.bridge-nf-call-ip6tables" = "1"
-          "net.bridge.bridge-nf-call-iptables" = "1"
-          "net.ipv4.ip_forward" = "1"
-        }
-      }
-    })],
-    [for p in each.value.config_patch : yamlencode(p) if length(p) > 0],
-  )
+  config_patches = [
+    templatefile("${path.module}/talos-config/worker.yaml.tpl", {
+      hostname          = each.key
+      network_interface = "eth0"
+      ipv4_local        = local.workers[each.key].ip
+      network_ip_prefix = "24"
+      network_gateway   = var.default_gateway
+    })
+  ]
 }
