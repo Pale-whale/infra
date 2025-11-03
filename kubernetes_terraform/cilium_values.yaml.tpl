@@ -1,11 +1,12 @@
 autoDirectNodeRoutes: true
 annotateK8sNode: true
 routingMode: 'native'
+enableIPv4Masquerade: true
 bgpControlPlane:
   enabled: true
 bpfClockProbe: true
 bpf:
-  hostLegacyRouting: false
+  hostLegacyRouting: true
   masquerade: true
   preallocateMaps: true
   tproxy: false
@@ -13,13 +14,14 @@ cgroup:
   autoMount:
     enabled: false
   hostRoot: '/sys/fs/cgroup'
-disableEnvoyVersionCheck: true
 k8sServiceHost: localhost
 k8sServicePort: 7445
 hubble:
-  enabled: false
+  enabled: true
   ui:
-    enabled: false
+    enabled: true
+  relay:
+    enabled: true
 installNoConntrackIptablesRules: true
 ipam:
   mode: kubernetes
@@ -55,9 +57,6 @@ securityContext:
       - NET_ADMIN
       - SYS_ADMIN
       - SYS_RESOURCE
-serviceAccounts:
-  nodeinit:
-    enabled: true
 tolerations:
   - operator: Exists
   - effect: NoSchedule

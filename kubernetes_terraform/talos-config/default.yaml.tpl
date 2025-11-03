@@ -24,7 +24,7 @@ machine:
       port: 7445
     hostDNS:
       enabled: true
-      forwardKubeDNSToHost: true
+      forwardKubeDNSToHost: false
       resolveMemberNames: true
 
 %{ if deploy_cilium_cni ~}
