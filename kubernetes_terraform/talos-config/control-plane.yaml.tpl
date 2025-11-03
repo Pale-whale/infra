@@ -2,9 +2,9 @@ machine:
   certSANs:
     - ${kubeapi_fqdn}
     - ${kubeapi_address}
-    %{ for san in extra_sans ~}
+%{ for san in extra_sans ~}
     - ${san}
-    %{ endfor ~}
+%{ endfor ~}
 
   features:
     kubernetesTalosAPIAccess:
@@ -16,8 +16,6 @@ machine:
 
   network:
     hostname: ${hostname}
-    nameservers:
-      - ${network_gateway}
     interfaces:
       - interface: eth0
         dhcp: false
@@ -39,6 +37,6 @@ cluster:
     certSANs:
       - ${kubeapi_fqdn}
       - ${kubeapi_address}
-      %{ for san in extra_sans ~}
+%{ for san in extra_sans ~}
       - ${san}
-      %{ endfor ~}
+%{ endfor ~}
