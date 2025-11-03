@@ -149,6 +149,11 @@ resource "talos_machine_configuration_apply" "controlplane" {
     [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
     [yamlencode({
       machine = {
+        kubelet = {
+          nodeIP = {
+            validSubnets = ["10.50.0.0/24"]
+          }
+        }
         features = {
           kubePrism = {
             enabled = true
@@ -179,6 +184,9 @@ resource "talos_machine_configuration_apply" "controlplane" {
         }
       }
       cluster = {
+        etcd = {
+          advertisedSubnets = ["10.50.0.0/24"]
+        }
         network = {
           podSubnets     = [var.pod_subnet]
           serviceSubnets = [var.services_subnet]
@@ -324,6 +332,43 @@ resource "talos_machine_configuration_apply" "worker" {
     [yamlencode(local.dont_schedule_until_cilium_ready_taint)],
     [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
     [for p in var.default_workers_config_patch : yamlencode(p) if length(p) > 0],
+    [yamlencode({
+      machine = {
+        kubelet = {
+          nodeIP = {
+            validSubnets = ["10.60.0.0/16"]
+          }
+        }
+        features = {
+          kubePrism = {
+            enabled = true
+            port = 7445
+          }
+          hostDNS = {
+            enabled              = true
+            forwardKubeDNSToHost = true
+            resolveMemberNames   = true
+          }
+        }
+        network = {
+          hostname    = each.key
+          nameservers = [var.default_gateway]
+          interfaces = [
+            {
+              interface = "eth0"
+              addresses = ["${each.value.ip}/24"]
+              dhcp      = false
+              routes = [
+                {
+                  network = "0.0.0.0/0"
+                  gateway = var.default_gateway
+                }
+              ]
+            }
+          ]
+        }
+      }
+    })],
     [for p in each.value.config_patch : yamlencode(p) if length(p) > 0],
   )
 }
