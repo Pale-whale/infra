@@ -132,7 +132,7 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
 
     ip_config {
       ipv4 {
-        address = each.value.ip
+        address = "${each.value.ip}/24"
         gateway = var.default_gateway
       }
     }
@@ -304,7 +304,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
 
     ip_config {
       ipv4 {
-        address = each.value.ip
+        address = "${each.value.ip}/24"
         gateway = var.default_gateway
       }
     }
@@ -372,7 +372,7 @@ resource "talos_machine_configuration_apply" "worker" {
         kernel = {
           modules = [{
             name = "br_netfilter"
-            parameters = [ { nf_conntrack_max = 131072 } ]
+            parameters = [ "nf_conntrack_max=131072" ]
           }]
         }
         sysctls = {
