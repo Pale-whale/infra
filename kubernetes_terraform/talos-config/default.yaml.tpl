@@ -3,10 +3,6 @@ machine:
     extraArgs:
       cloud-provider: external
 
-  network:
-    nameservers:
-      - ${network_gateway}
-
   nodeTaints:
     node.cilium.io/agent-not-ready: 'true:NoSchedule'
 

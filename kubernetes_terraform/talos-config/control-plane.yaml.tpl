@@ -14,18 +14,6 @@ machine:
       allowedKubernetesNamespaces:
         - kube-system
 
-  network:
-    hostname: ${hostname}
-    interfaces:
-      - interface: eth0
-        dhcp: false
-        addresses:
-          - ${ipv4_local}/${network_ip_prefix}
-        routes:
-          - network: 0.0.0.0/0
-            gateway: ${network_gateway}
-  
-
 cluster:
   network:
     podSubnets:
