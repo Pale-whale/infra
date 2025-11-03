@@ -175,7 +175,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
               dhcp      = false
               routes = [
                 {
-                  network = "0.0.0.0/0"
+                  network = "10.0.0.0/8"
                   gateway = var.default_gateway
                 }
               ]
@@ -360,7 +360,7 @@ resource "talos_machine_configuration_apply" "worker" {
               dhcp      = false
               routes = [
                 {
-                  network = "0.0.0.0/0"
+                  network = "10.0.0.0/8"
                   gateway = var.default_gateway
                 }
               ]
