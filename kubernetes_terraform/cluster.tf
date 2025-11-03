@@ -149,11 +149,6 @@ resource "talos_machine_configuration_apply" "controlplane" {
     [for p in var.default_machine_config_patch : yamlencode(p) if length(p) > 0],
     [yamlencode({
       machine = {
-        kubelet = {
-          nodeIP = {
-            validSubnets = ["10.50.0.0/24"]
-          }
-        }
         features = {
           kubePrism = {
             enabled = true
@@ -184,9 +179,6 @@ resource "talos_machine_configuration_apply" "controlplane" {
         }
       }
       cluster = {
-        etcd = {
-          advertisedSubnets = ["10.50.0.0/24"]
-        }
         network = {
           podSubnets     = [var.pod_subnet]
           serviceSubnets = [var.services_subnet]
