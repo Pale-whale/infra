@@ -16,6 +16,8 @@ machine:
 
   network:
     hostname: ${hostname}
+    nameservers:
+      - ${network_gateway}
     interfaces:
       - interface: eth0
         dhcp: false

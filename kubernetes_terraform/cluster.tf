@@ -30,7 +30,7 @@ data "talos_machine_configuration" "controlplane" {
 
   config_patches = [
     templatefile("${path.module}/talos-config/default.yaml.tpl", {
-      network_gateway = var.default_gateway
+      network_gateway   = var.default_gateway
       deploy_cilium_cni = var.deploy_cilium_cni
     }),
   ]
@@ -53,7 +53,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
       hostname          = each.key
       network_ip_prefix = "24"
       pod_subnet        = var.pod_subnet
-      services_subnet    = var.services_subnet
+      services_subnet   = var.services_subnet
     })
   ]
 }
@@ -75,7 +75,7 @@ data "talos_machine_configuration" "workers" {
 
   config_patches = [
     templatefile("${path.module}/talos-config/default.yaml.tpl", {
-      network_gateway    = var.default_gateway
+      network_gateway   = var.default_gateway
       deploy_cilium_cni = var.deploy_cilium_cni
     }),
   ]

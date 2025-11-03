@@ -1,6 +1,8 @@
 machine:
   network:
     hostname: ${hostname}
+    nameservers:
+      - ${network_gateway}
     interfaces:
       - interface: ${network_interface}
         dhcp: false
