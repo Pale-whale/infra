@@ -1,8 +1,6 @@
-autoDirectNodeRoutes: true
+autoDirectNodeRoutes: false
 annotateK8sNode: true
-routingMode: 'native'
-l2podAnnouncements:
-  enabled: true
+routingMode: 'tunnel'
 bgpControlPlane:
   enabled: true
 bpfClockProbe: true
@@ -15,17 +13,15 @@ cgroup:
   autoMount:
     enabled: false
   hostRoot: '/sys/fs/cgroup'
-disableEnvoyVersionCheck: true
 k8sServiceHost: localhost
 k8sServicePort: 7445
 hubble:
   enabled: false
   ui:
     enabled: false
-installNoConntrackIptablesRules: true
+installNoConntrackIptablesRules: false
 ipam:
   mode: kubernetes
-ipv4NativeRoutingCIDR: ${native_cidr}
 kubeProxyReplacement: "true"
 loadBalancer:
   algorithm: maglev
