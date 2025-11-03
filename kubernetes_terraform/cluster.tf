@@ -160,6 +160,17 @@ resource "talos_machine_configuration_apply" "controlplane" {
             resolveMemberNames   = true
           }
         }
+        kernel = {
+          modules = [{
+            name = "br_netfilter"
+            parameters = [ { nf_conntrack_max = 131072 } ]
+          }]
+        }
+        sysctls = {
+          "net.bridge.bridge-nf-call-ip6tables" = "1"
+          "net.bridge.bridge-nf-call-iptables" = "1"
+          "net.ipv4.ip_forward" = "1"
+        }
       }
       cluster = {
         network = {
@@ -319,6 +330,17 @@ resource "talos_machine_configuration_apply" "worker" {
             forwardKubeDNSToHost = true
             resolveMemberNames   = true
           }
+        }
+        kernel = {
+          modules = [{
+            name = "br_netfilter"
+            parameters = [ { nf_conntrack_max = 131072 } ]
+          }]
+        }
+        sysctls = {
+          "net.bridge.bridge-nf-call-ip6tables" = "1"
+          "net.bridge.bridge-nf-call-iptables" = "1"
+          "net.ipv4.ip_forward" = "1"
         }
       }
     })],
