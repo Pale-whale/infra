@@ -1,0 +1,45 @@
+app:
+  name: proxmox-csi
+  project: infra
+  source:
+    repoURL: git@github.com:sergelogvinov/proxmox-csi-plugin.git 
+    targetRevision: v0.15.1
+    path: charts/proxmox-csi-plugin
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  helm:
+    values: |
+      config:
+        clusters:
+          - url: http://10.0.0.254:8006/api2/json
+            insecure: true
+            token_id_file: /run/secrets/homelab/token_id
+            token_secret_file: /run/secrets/homelab/token_secret
+            region: homelab
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
+      extraVolumes:
+        - name: credentials-homelab
+          secret:
+            secretName: proxmox-ccm-credentials
+      extraVolumeMounts:
+        - name: credentials-homelab
+          readOnly: true
+          mountPath: "/run/secrets/homelab"
+      storageClass:
+        - name: proxmox-local-xfs
+          storage: local-lvm
+          reclaimPolicy: Delete
+          fstype: xfs
+          ssd: true
+          mountOptions:
+            - noatime

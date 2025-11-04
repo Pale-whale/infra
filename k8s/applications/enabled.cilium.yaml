@@ -1,0 +1,91 @@
+app:
+  name: cilium
+  project: infra
+  source:
+    repoURL: git@github.com:cilium/cilium.git
+    targetRevision: v1.18.2
+    path: install/kubernetes/cilium
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  helm:
+    values: |
+      autoDirectNodeRoutes: true
+      annotateK8sNode: true
+      routingMode: 'native'
+      enableIPv4Masquerade: true
+      bgpControlPlane:
+        enabled: true
+      bpfClockProbe: true
+      bpf:
+        hostLegacyRouting: false
+        masquerade: true
+        preallocateMaps: true
+        tproxy: false
+      cgroup:
+        autoMount:
+          enabled: false
+        hostRoot: '/sys/fs/cgroup'
+      k8sServiceHost: localhost
+      k8sServicePort: 7445
+      hubble:
+        enabled: true
+        relay:
+          enabled: true
+          rollOutPods: true
+        ui:
+          enabled: true
+          ingress:
+            enabled: true
+            hosts:
+            - hubble.palewhale.fr
+            annotations:
+              traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
+      installNoConntrackIptablesRules: true
+      ipam:
+        mode: kubernetes
+      ipv4NativeRoutingCIDR: "10.0.0.0/8"
+      kubeProxyReplacement: true
+      localRedirectPolicy: true
+      localRedirectPolicies:
+        enabled: true
+      loadBalancer:
+        algorithm: maglev
+        mode: hybrid
+      maglev:
+        tableSize: 4093
+        hashSeed: 'JAeU+bGYbg1OJFJd'
+      operator:
+        replicas: 2
+        rollOutPods: true
+      securityContext:
+        capabilities:
+          ciliumAgent:
+            - CHOWN
+            - KILL
+            - NET_ADMIN
+            - NET_RAW
+            - IPC_LOCK
+            - SYS_ADMIN
+            - SYS_RESOURCE
+            - DAC_OVERRIDE
+            - FOWNER
+            - SETGID
+            - SETUID
+          cleanCiliumState:
+            - NET_ADMIN
+            - SYS_ADMIN
+            - SYS_RESOURCE
+      tolerations:
+        - operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+        - effect: NoSchedule
+          key: node.cilium.io/agent-not-ready
+          operator: Exists
+      tolerations:
+        - operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists

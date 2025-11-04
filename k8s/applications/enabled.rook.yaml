@@ -1,0 +1,22 @@
+app:
+  name: rook-ceph
+  project: infra
+  source:
+    repoURL: git@github.com:rook/rook.git
+    targetRevision: v1.18.6
+    path: deploy/charts/rook-ceph
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-ceph
+  helm:
+    values: |
+      enableDiscoveryDaemon: true
+      discover:
+        nodeAffinity: 'node-role.kubernetes.io/ceph=true'
+      provisionerNodeAffinity: 'node-role.kubernetes.io/ceph=true'
+      resources:
+        limits:
+          memory: 512Mi
+        requests:
+          cpu: 200m
+          memory: 128Mi

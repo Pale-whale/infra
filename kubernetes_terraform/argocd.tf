@@ -42,7 +42,7 @@ resource "kubernetes_secret" "argocd_repo" {
     name      = var.argocd_private_repo.repo_name
     namespace = "argocd"
     labels = {
-      "app.kubernetes.io/managed-by"   = "Terraform-bootstrap"
+      "app.kubernetes.io/managed-by"   = "terraform-bootstrap"
       "argocd.argoproj.io/secret-type" = var.argocd_private_repo.secret_type
     }
   }

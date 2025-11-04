@@ -6,7 +6,7 @@ bgpControlPlane:
   enabled: true
 bpfClockProbe: true
 bpf:
-  hostLegacyRouting: true
+  hostLegacyRouting: false
   masquerade: true
   preallocateMaps: true
   tproxy: false

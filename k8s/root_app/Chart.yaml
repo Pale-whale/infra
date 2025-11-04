@@ -1,0 +1,7 @@
+apiVersion: v2
+name: root-app
+description: Application used to deploy various applications to a kubernetes cluster
+
+type: application
+
+version: 0.1.2

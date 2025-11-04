@@ -1,0 +1,101 @@
+app:
+  name: argocd
+  project: infra
+  source:
+    repoURL: git@github.com:argoproj/argo-helm.git
+    targetRevision: argo-cd-9.0.6
+    path: charts/argo-cd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  helm:
+    values: |
+      global:
+        domain: argocd.palewhale.fr
+      configs:
+        params:
+          server.insecure: true
+        rbac:
+          policy.csv: |
+            g, ArgoCDAdmins, role:admin
+      server:
+        ingress:
+          enabled: true
+          hostname: argocd.palewhale.fr
+      extraObjects:
+      - apiVersion: argoproj.io/v1alpha1
+        kind: AppProject
+        metadata:
+          name: infra
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          description: Holds the homelab infra
+          sourceRepos:
+          - '*'
+          destinations:
+          - namespace: '*'
+            server: https://kubernetes.default.svc
+          clusterResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          namespaceResourceBlacklist: []
+          namespaceResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          syncWindows:
+          - kind: allow
+            schedule: '30 4 * * SAT,SUN'
+            duration: 5h
+            applications:
+            - '*'
+            manualSync: true
+      - apiVersion: argoproj.io/v1alpha1
+        kind: AppProject
+        metadata:
+          name: media
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          description: Holds the homelab's media services
+          sourceRepos:
+          - '*'
+          destinations:
+          - namespace: 'media'
+            server: https://kubernetes.default.svc
+          clusterResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          namespaceResourceBlacklist: []
+          namespaceResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          syncWindows:
+          - kind: allow
+            schedule: '30 5 * * SAT,SUN'
+            duration: 5h
+            applications:
+            - '*'
+            manualSync: true
+      - apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: root
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          project: infra
+          source:
+            repoURL: git@github.com:Pale-Whale/kube-root-app.git
+            targetRevision: HEAD
+            path: .
+            helm:
+              releaseName: root
+              valueFiles:
+                - values.yaml
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: argocd
+          syncPolicy:
+            automated:
+              prune: true

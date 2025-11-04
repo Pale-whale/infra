@@ -1,0 +1,153 @@
+app:
+  name: ceph-cluster
+  project: infra
+  source:
+    repoURL: git@github.com:rook/rook.git
+    targetRevision: v1.18.6
+    path: deploy/charts/rook-ceph-cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ceph-cluster
+  helm:
+    values: |
+      operatorNamespace: rook-ceph
+      clusterName: homelab
+      toolbox:
+        enabled:
+          true
+      monitoring:
+        enabled: true
+      cephClusterSpec:
+        # NEVER change this value
+        dataDirHostPath: /var/lib/rook
+        mon:
+          count: 3
+          allowMultiplePerNode: false
+          volumeClaimTemplate:
+            spec:
+              storageClassName: proxmox-local-xfs
+              resources:
+                requests:
+                  storage: 10Gi
+        mgr:
+          count: 2
+          allowMultiplePerNode: false
+          modules:
+            - name: rook
+              enabled: true
+        dashboard:
+          enabled: true
+          ssl: true
+        network:
+          connections:
+            encryption:
+              enabled: false
+            compression:
+              enabled: true
+            requireMsgr2: true
+        logCollector:
+          enabled: true
+          periodicity: daily
+          maxLogSize: 500M
+        cephVersion:
+          image: quay.io/ceph/ceph:v19.2.3
+          allowUnsupported: false
+        skipUpgradeChecks: false
+        continueUpgradeAfterChecksEvenIfNotHealthy: false
+        placement:
+          mon:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: Exists
+            tolerations:
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+          mgr:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: Exists
+            tolerations:
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: "Exists"
+                effect: "NoSchedule"
+        resources:
+          osd:
+            limits:
+              memory: "8Gi"
+            requests:
+              cpu: "1000m"
+              memory: "8Gi"
+        storage:
+          useAllNodes: false
+          useAllDevices: false
+          allowDeviceClassUpdate: true
+          disruptionManagement:
+            managePodBudgets: true
+            osdMaintenanceTimeout: 30
+          nodes:
+            - name: "agent-milo"
+              devices:
+                - name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
+                  deviceClass: ssd
+            - name: "agent-dewey"
+              devices:
+                - name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1"
+                  deviceClass: ssd
+            - name: "agent-rupert"
+              devices:
+                - name: "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0Y903438J"
+                  deviceClass: nvme
+      cephBlockPools:
+        - name: ceph-blockpool
+          spec:
+            failureDomain: host
+            replicated:
+              size: 2
+            storageClass:
+              enabled: true
+              name: ceph-block
+              isDefault: true
+              reclaimPolicy: Delete
+              allowVolumeExpansion: true
+              volumeBindingMode: "Immediate"
+              parameters:
+                csi.storage.k8s.io/fstype: ext4
+      cephFileSystems:
+        - name: ceph-filesystem
+          spec:
+            metadataPool:
+              replicated:
+                size: 3
+            dataPools:
+              - failureDomain: host
+                replicated:
+                  size: 2
+                name: data0
+            metadataServer:
+              activeCount: 1
+              activeStandby: true
+              resources:
+                limits:
+                  memory: "4Gi"
+                requests:
+                  cpu: "1000m"
+                  memory: "4Gi"
+              priorityClassName: system-cluster-critical
+            storageClass:
+              enabled: true
+              isDefault: false
+              name: ceph-filesystem
+              pool: data0
+              reclaimPolicy: Delete
+              allowVolumeExpansion: true
+              volumeBindingMode: "Immediate"
+              parameters:
+                csi.storage.k8s.io/fstype: ext4
+      cephObjectStores: {}

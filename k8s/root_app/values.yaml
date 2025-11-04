@@ -1,0 +1,5 @@
+#Set this to point to your applications
+
+repository:
+  url: ''
+  path: 'k8s/applications/enabled.*.yaml'

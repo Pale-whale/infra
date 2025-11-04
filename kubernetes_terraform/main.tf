@@ -47,3 +47,91 @@ data "talos_cluster_health" "health" {
   worker_nodes         = [for n in local.workers : n.ip]
   endpoints            = data.talos_client_configuration.homelab.endpoints
 }
+
+resource "proxmox_virtual_environment_role" "ccm" {
+  role_id = "kubernetes-ccm"
+
+  privileges = [
+    "VM.Audit",
+  ]
+}
+
+resource "proxmox_virtual_environment_user" "ccm" {
+  comment         = "Managed by Terraform"
+  email           = "kubernetes-ccm@pve"
+  enabled         = true
+  expiration_date = "2046-01-01T20:00:00Z"
+  user_id         = "kubernetes-ccm@pve"
+}
+
+resource "proxmox_virtual_environment_user_token" "ccm" {
+  comment         = "Managed by Terraform"
+  expiration_date = "2046-01-01T22:00:00Z"
+  token_name      = "kubernetes-token"
+  user_id         = proxmox_virtual_environment_user.ccm.user_id
+}
+
+resource "kubernetes_secret" "proxmox_ccm_credentials" {
+  depends_on = [talos_cluster_health.health]
+
+  metadata {
+    name      = "proxmox-ccm-credentials"
+    namespace = "kube-system"
+    labels = {
+      "app.kubernetes.io/managed-by"   = "terraform-bootstrap"
+    }
+  }
+
+  data = {
+    token_id = proxmox_virtual_environment_user_token.ccm.id
+    token_secret = proxmox_virtual_environment_user_token.ccm.value
+  }
+
+  type = "Opaque"
+}
+
+resource "proxmox_virtual_environment_role" "csi" {
+  role_id = "kubernetes-csi"
+
+  privileges = [
+    "VM.Audit",
+    "VM.Config.Disk",
+    "Datastore.Allocate",
+    "Datastore.AllocateSpace",
+    "Datastore.Audit"
+  ]
+}
+
+resource "proxmox_virtual_environment_user" "csi" {
+  comment         = "Managed by Terraform"
+  email           = "kubernetes-csi@pve"
+  enabled         = true
+  expiration_date = "2046-01-01T20:00:00Z"
+  user_id         = "kubernetes-csi@pve"
+}
+
+resource "proxmox_virtual_environment_user_token" "csi" {
+  comment         = "Managed by Terraform"
+  expiration_date = "2046-01-01T22:00:00Z"
+  token_name      = "kubernetes-token"
+  user_id         = proxmox_virtual_environment_user.csi.user_id
+}
+
+resource "kubernetes_secret" "proxmox_csi_credentials" {
+  depends_on = [talos_cluster_health.health]
+
+  metadata {
+    name      = "proxmox-csi-credentials"
+    namespace = "kube-system"
+    labels = {
+      "app.kubernetes.io/managed-by"   = "terraform-bootstrap"
+    }
+  }
+
+  data = {
+    token_id = proxmox_virtual_environment_user_token.csi.id
+    token_secret = proxmox_virtual_environment_user_token.csi.value
+  }
+
+  type = "Opaque"
+}
