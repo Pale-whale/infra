@@ -3,11 +3,9 @@ machine:
     extraArgs:
       cloud-provider: external
 
-  nodeTaints:
-    node.cilium.io/agent-not-ready: 'true:NoSchedule'
-
   kernel:
     modules:
+      - name: ip_tables
       - name: br_netfilter
         parameters:
           - nf_conntrack_max=131072
