@@ -7,24 +7,24 @@ resource "tls_private_key" "argocd" {
 data "tls_public_key" "argocd" {
   count = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
 
-  private_key_pem = tls_private_key.argocd.private_key_pem
+  private_key_pem = tls_private_key.argocd[0].private_key_pem
 }
 
 resource "github_user_ssh_key" "argocd" {
   count = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
 
   title = var.argocd_private_repo.key_name
-  key   = data.tls_public_key.argocd.public_key_openssh
+  key   = data.tls_public_key.argocd[0].public_key_openssh
 }
 
 resource "helm_release" "argocd" {
-  depends_on = [talos_cluster_health.health]
+  depends_on = [data.talos_cluster_health.health]
   count      = var.deploy_argocd ? 1 : 0
 
   name             = "argocd"
   namespace        = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
-  chart            = "argocd"
+  chart            = "argo-cd"
   version          = var.argocd_version
   create_namespace = true
 
@@ -50,7 +50,7 @@ resource "kubernetes_secret" "argocd_repo" {
   data = {
     type          = "git"
     url           = var.argocd_private_repo.url
-    sshPrivateKey = tls_private_key.argocd.private_key_pem
+    sshPrivateKey = tls_private_key.argocd[0].private_key_pem
   }
 
   type = "Opaque"

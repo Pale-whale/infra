@@ -72,18 +72,18 @@ resource "proxmox_virtual_environment_user_token" "ccm" {
 }
 
 resource "kubernetes_secret" "proxmox_ccm_credentials" {
-  depends_on = [talos_cluster_health.health]
+  depends_on = [data.talos_cluster_health.health]
 
   metadata {
     name      = "proxmox-ccm-credentials"
     namespace = "kube-system"
     labels = {
-      "app.kubernetes.io/managed-by"   = "terraform-bootstrap"
+      "app.kubernetes.io/managed-by" = "terraform-bootstrap"
     }
   }
 
   data = {
-    token_id = proxmox_virtual_environment_user_token.ccm.id
+    token_id     = proxmox_virtual_environment_user_token.ccm.id
     token_secret = proxmox_virtual_environment_user_token.ccm.value
   }
 
@@ -118,18 +118,18 @@ resource "proxmox_virtual_environment_user_token" "csi" {
 }
 
 resource "kubernetes_secret" "proxmox_csi_credentials" {
-  depends_on = [talos_cluster_health.health]
+  depends_on = [data.talos_cluster_health.health]
 
   metadata {
     name      = "proxmox-csi-credentials"
     namespace = "kube-system"
     labels = {
-      "app.kubernetes.io/managed-by"   = "terraform-bootstrap"
+      "app.kubernetes.io/managed-by" = "terraform-bootstrap"
     }
   }
 
   data = {
-    token_id = proxmox_virtual_environment_user_token.csi.id
+    token_id     = proxmox_virtual_environment_user_token.csi.id
     token_secret = proxmox_virtual_environment_user_token.csi.value
   }
 

@@ -9,11 +9,11 @@ extraObjects:
     spec:
       description: ${ project.description }
       sourceRepos:
-%{ for sr in project.toset(source_repos) ~}
+%{ for sr in toset(project.source_repos) ~}
       - ${ sr }
 %{ endfor }
       destinations:
-%{ for dest in toset(project.destination) ~}
+%{ for dest in toset(project.destinations) ~}
       - namespace: ${ dest.namespace }
         server: ${ dest.server }
 %{ endfor }
@@ -25,8 +25,8 @@ extraObjects:
       namespaceResourceBlacklist: []
       namespaceResourceWhitelist:
 %{ for nrw in toset(project.namespace_resource_whitelist) ~}
-      - group: ${ crw.group }
-        kind: ${ crw.kind }
+      - group: ${ nrw.group }
+        kind: ${ nrw.kind }
 %{ endfor }
       syncWindows:
 %{ for sw in toset(project.sync_windows) ~}

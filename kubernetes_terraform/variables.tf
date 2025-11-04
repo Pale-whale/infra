@@ -83,6 +83,7 @@ variable "argocd_extra_applications" {
     project         = string
     repo_url        = string
     target_revision = string
+    path            = string
     value_files     = optional(list(string), [])
   }))
   default = {}
@@ -104,15 +105,15 @@ variable "argocd_extra_projects" {
       group = string
       kind  = string
     })), [])
-    sync_windows = optional(object({
+    sync_windows = optional(list(object({
       kind         = string
       schedule     = string
       duration     = string
       applications = list(string)
       manual_sync  = bool
-    }))
-    default = {}
+    })))
   }))
+  default = {}
 }
 
 variable "pod_subnet" {

@@ -1,6 +1,6 @@
 data "talos_cluster_health" "kubeapi_up" {
   depends_on = [talos_machine_bootstrap.bootstrap]
-  count      = var.deploy_cilium ? 1 : 0
+  count      = var.deploy_cilium_cni ? 1 : 0
 
   client_configuration   = data.talos_client_configuration.homelab.client_configuration
   control_plane_nodes    = [for n in local.controlplane : n.ip]
@@ -10,8 +10,8 @@ data "talos_cluster_health" "kubeapi_up" {
 }
 
 resource "helm_release" "cilium" {
-  depends_on = [talos_cluster_health.kubeapi_up]
-  count      = var.deploy_cilium ? 1 : 0
+  depends_on = [data.talos_cluster_health.kubeapi_up]
+  count      = var.deploy_cilium_cni ? 1 : 0
 
   name       = "cilium"
   namespace  = "kube-system"
