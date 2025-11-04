@@ -17,6 +17,7 @@ pod_subnet         = "10.10.0.0/16"
 services_subnet    = "10.20.0.0/16"
 native_cidr        = "10.0.0.0/8"
 deploy_cilium_cni  = true
+deploy_argocd      = true
 
 default_proxmox_node = "mother-brain"
 
@@ -57,17 +58,6 @@ topology = {
       network_device = {
         mac_address = "bc:24:11:fe:54:91"
       }
-      additional_disks = {
-        ceph-db = {
-          datastore_id = "local-lvm"
-          file_format  = "raw"
-          interface    = "scsi2"
-          size         = 32
-          discard      = "on"
-          ssd          = true
-          iothread     = true
-        }
-      }
     }
     master-mind = {
       vm_id = 111
@@ -75,34 +65,12 @@ topology = {
       network_device = {
         mac_address = "bc:24:11:3f:2d:2a"
       }
-      additional_disks = {
-        ceph-db = {
-          datastore_id = "local-lvm"
-          file_format  = "raw"
-          interface    = "scsi2"
-          size         = 32
-          discard      = "on"
-          ssd          = true
-          iothread     = true
-        }
-      }
     }
     master-baiter = {
       vm_id = 112
       ip    = "10.50.0.3"
       network_device = {
         mac_address = "bc:24:11:af:ba:e8"
-      }
-      additional_disks = {
-        ceph-db = {
-          datastore_id = "local-lvm"
-          file_format  = "raw"
-          interface    = "scsi2"
-          size         = 32
-          discard      = "on"
-          ssd          = true
-          iothread     = true
-        }
       }
     }
   }
@@ -190,5 +158,50 @@ topology = {
         pcie   = true
       }]
     }
+  }
+}
+
+argocd_private_repo = {
+  enabled       = true
+  repo_name     = "github"
+  key_name      = "homelab"
+  key_algorithm = "ED25519"
+  secret_type   = "repo-creds"
+  url           = "git@github.com"
+}
+
+argocd_extra_projects = {
+  infra = {
+    description  = "Holds the homelab infra"
+    source_repos = ["*"]
+    destinations = [{
+      namespace = "*"
+      server    = "https://kubernetes.default.svc"
+    }]
+    cluster_resource_whitelist = [{
+      group = "*"
+      kind  = "*"
+    }]
+    namespace_resource_whitelist = [{
+      group = "*"
+      kind  = "*"
+    }]
+    sync_windows = [{
+      kind         = "allow"
+      schedule     = "30 4 * * SAT,SUN"
+      duration     = "5h"
+      applications = ["*"]
+      manual_sync  = true
+    }]
+  }
+}
+
+argocd_extra_applications = {
+  root = {
+    project         = "infra"
+    repo_url        = "git@github.com:Pale-Whale/infra.git"
+    target_revision = "HEAD"
+    path            = "k8s/root_app"
+    value_files     = ["values.yaml"]
   }
 }

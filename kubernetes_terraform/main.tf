@@ -40,18 +40,8 @@ resource "talos_cluster_kubeconfig" "kubeconfig" {
   node                 = local.controlplane[keys(local.controlplane)[0]].ip
 }
 
-data "talos_cluster_health" "health_no_cilium" {
-  count                = var.deploy_cilium_cni ? 0 : 1
+data "talos_cluster_health" "health" {
   depends_on           = [talos_machine_configuration_apply.controlplane, talos_machine_configuration_apply.worker]
-  client_configuration = data.talos_client_configuration.homelab.client_configuration
-  control_plane_nodes  = [for n in local.controlplane : n.ip]
-  worker_nodes         = [for n in local.workers : n.ip]
-  endpoints            = data.talos_client_configuration.homelab.endpoints
-}
-
-data "talos_cluster_health" "health_with_cilium" {
-  count                = var.deploy_cilium_cni ? 1 : 0
-  depends_on           = [helm_release.cilium]
   client_configuration = data.talos_client_configuration.homelab.client_configuration
   control_plane_nodes  = [for n in local.controlplane : n.ip]
   worker_nodes         = [for n in local.workers : n.ip]

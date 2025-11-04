@@ -17,11 +17,11 @@ cgroup:
 k8sServiceHost: localhost
 k8sServicePort: 7445
 hubble:
-  enabled: true
+  enabled: false
   ui:
-    enabled: true
+    enabled: false
   relay:
-    enabled: true
+    enabled: false
 installNoConntrackIptablesRules: true
 ipam:
   mode: kubernetes

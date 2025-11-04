@@ -54,6 +54,67 @@ variable "cilium_version" {
   default = "1.18.2"
 }
 
+variable "deploy_argocd" {
+  type    = bool
+  default = false
+}
+
+variable "argocd_version" {
+  type    = string
+  default = "v9.0.6"
+}
+
+variable "argocd_private_repo" {
+  type = object({
+    enabled       = bool
+    repo_name     = optional(string)
+    key_name      = optional(string)
+    key_algorithm = optional(string)
+    secret_type   = optional(string)
+    url           = optional(string)
+  })
+  default = {
+    enabled = false
+  }
+}
+
+variable "argocd_extra_applications" {
+  type = map(object({
+    project         = string
+    repo_url        = string
+    target_revision = string
+    value_files     = optional(list(string), [])
+  }))
+  default = []
+}
+
+variable "argocd_extra_projects" {
+  type = map(object({
+    description  = string
+    source_repos = list(string)
+    destinations = list(object({
+      server    = string
+      namespace = string
+    }))
+    cluster_resource_whitelist = optional(list(object({
+      group = string
+      kind  = string
+    })), [])
+    namespace_resource_whitelist = optional(list(object({
+      group = string
+      kind  = string
+    })), [])
+    sync_windows = optional(object({
+      kind         = string
+      schedule     = string
+      duration     = string
+      applications = list(string)
+      manual_sync  = bool
+    }))
+    default = []
+  }))
+}
+
 variable "pod_subnet" {
   type    = string
   default = "10.0.0.0/16"
