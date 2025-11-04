@@ -13,8 +13,8 @@ dns                = ["10.0.0.254"]
 kubeapi_address    = "10.0.0.69"
 kubeapi_fqdn       = "kubeapi.palewhale.fr"
 kubeapi_extra_sans = ["169.168.1.42"]
-pod_subnet         = "10.10.0.0/12"
-services_subnet    = "10.20.0.0/12"
+pod_subnet         = "10.10.0.0/16"
+services_subnet    = "10.20.0.0/16"
 native_cidr        = "10.0.0.0/8"
 deploy_cilium_cni  = true
 
