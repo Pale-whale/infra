@@ -10,32 +10,32 @@ extraObjects:
       description: ${ project.description }
       sourceRepos:
 %{ for sr in toset(project.source_repos) ~}
-      - ${ sr }
+      - "${ sr }"
 %{ endfor }
       destinations:
 %{ for dest in toset(project.destinations) ~}
-      - namespace: ${ dest.namespace }
-        server: ${ dest.server }
+      - namespace: "${ dest.namespace }"
+        server: "${ dest.server }"
 %{ endfor }
       clusterResourceWhitelist:
 %{ for crw in toset(project.cluster_resource_whitelist) ~}
-      - group: ${ crw.group }
-        kind: ${ crw.kind }
+      - group: "${ crw.group }"
+        kind: "${ crw.kind }"
 %{ endfor }
       namespaceResourceBlacklist: []
       namespaceResourceWhitelist:
 %{ for nrw in toset(project.namespace_resource_whitelist) ~}
-      - group: ${ nrw.group }
-        kind: ${ nrw.kind }
+      - group: "${ nrw.group }"
+        kind: "${ nrw.kind }"
 %{ endfor }
       syncWindows:
 %{ for sw in toset(project.sync_windows) ~}
-      - kind: ${ sw.kind }
-        schedule: ${ sw.schedule }
-        duration: ${ sw.duration }
+      - kind: "${ sw.kind }"
+        schedule: "${ sw.schedule }"
+        duration: "${ sw.duration }"
         applications:
 %{ for app in toset(sw.applications) ~}
-        - ${ app }
+        - "${ app }"
 %{ endfor }
         manualSync: ${ sw.manual_sync }
 %{ endfor }
@@ -44,21 +44,21 @@ extraObjects:
   - apiVersion: argoproj.io/v1alpha1
     kind: Application
     metadata:
-      name: ${ name }
+      name: "${ name }"
       finalizers:
         - resources-finalizer.argocd.argoproj.io
     spec:
-      project: ${ app.project }
+      project: "${ app.project }"
       source:
-        repoURL: ${ app.repo_url }
-        targetRevision: ${ app.target_revision }
-        path: ${ app.path }
+        repoURL: "${ app.repo_url }"
+        targetRevision: "${ app.target_revision }"
+        path: "${ app.path }"
         helm:
-          releaseName: ${ name }
+          releaseName: "${ name }"
           valueFiles:
             - values.yaml
 %{ for vf in app.value_files ~}
-            - ${ vf }
+            - "${ vf }"
 %{ endfor }
       destination:
         server: https://kubernetes.default.svc
