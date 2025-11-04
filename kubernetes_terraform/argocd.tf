@@ -17,7 +17,7 @@ resource "github_user_ssh_key" "argocd" {
   key   = data.tls_public_key.argocd[0].public_key_openssh
 }
 
-resource "helm_release" "argocd" {
+resource "helm_release" "argocd_bootstrap" {
   depends_on = [data.talos_cluster_health.health]
   count      = var.deploy_argocd ? 1 : 0
 
@@ -27,6 +27,19 @@ resource "helm_release" "argocd" {
   chart            = "argo-cd"
   version          = var.argocd_version
   create_namespace = true
+}
+
+resource "helm_release" "argocd_extra_objects" {
+  depends_on = [helm_release.argocd_bootstrap]
+  count      = var.deploy_argocd ? 1 : 0
+
+  name             = "argocd"
+  namespace        = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = var.argocd_version
+  create_namespace = true
+  upgrade_install  = true
 
   values = [templatefile("${path.module}/values/argocd.yaml.tpl", {
     extra_applications = var.argocd_extra_applications
@@ -35,7 +48,7 @@ resource "helm_release" "argocd" {
 }
 
 resource "kubernetes_secret" "argocd_repo" {
-  depends_on = [helm_release.argocd]
+  depends_on = [helm_release.argocd_bootstrap]
   count      = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
 
   metadata {

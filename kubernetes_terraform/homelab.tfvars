@@ -202,6 +202,6 @@ argocd_extra_applications = {
     repo_url        = "git@github.com:Pale-Whale/infra.git"
     target_revision = "HEAD"
     path            = "k8s/root_app"
-    value_files     = ["values.yaml"]
+    value_files     = []
   }
 }
