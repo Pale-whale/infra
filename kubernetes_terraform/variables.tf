@@ -85,7 +85,7 @@ variable "argocd_extra_applications" {
     target_revision = string
     value_files     = optional(list(string), [])
   }))
-  default = []
+  default = {}
 }
 
 variable "argocd_extra_projects" {
@@ -111,7 +111,7 @@ variable "argocd_extra_projects" {
       applications = list(string)
       manual_sync  = bool
     }))
-    default = []
+    default = {}
   }))
 }
 
