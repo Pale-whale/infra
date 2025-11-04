@@ -27,21 +27,7 @@ resource "helm_release" "argocd_bootstrap" {
   chart            = "argo-cd"
   version          = var.argocd_version
   create_namespace = true
-
-  set = [
-    {
-      name = "global.tolerations[0].key"
-      value = "node.cloudprovider.kubernetes.io/uninitialized"
-    },
-    {
-      name = "global.tolerations[0].operator"
-      value = "Exists"
-    },
-    {
-      name = "global.tolerations[0].effect"
-      value = "NoSchedule"
-    },
-  ]
+  upgrade_install  = true
 }
 
 resource "helm_release" "argocd_extra_objects" {
@@ -55,21 +41,6 @@ resource "helm_release" "argocd_extra_objects" {
   version          = var.argocd_version
   create_namespace = true
   upgrade_install  = true
-
-  set = [
-    {
-      name = "global.tolerations[0].key"
-      value = "node.cloudprovider.kubernetes.io/uninitialized"
-    },
-    {
-      name = "global.tolerations[0].operator"
-      value = "Exists"
-    },
-    {
-      name = "global.tolerations[0].effect"
-      value = "NoSchedule"
-    },
-  ]
 
   values = [templatefile("${path.module}/values/argocd.yaml.tpl", {
     extra_applications = var.argocd_extra_applications

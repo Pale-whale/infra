@@ -15,6 +15,11 @@ machine:
         - kube-system
 
 cluster:
+  externalCloudProvider:
+    enabled: true
+    manifests:
+      - https://raw.githubusercontent.com/sergelogvinov/proxmox-cloud-controller-manager/main/docs/deploy/cloud-controller-manager.yml
+      - https://raw.githubusercontent.com/sergelogvinov/proxmox-csi-plugin/main/docs/deploy/proxmox-csi-plugin.yml
   network:
     podSubnets:
       - ${pod_subnet}

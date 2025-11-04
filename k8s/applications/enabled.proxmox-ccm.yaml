@@ -10,13 +10,7 @@ app:
     namespace: kube-system
   helm:
     values: |
-      config:
-        clusters:
-          - url: http://10.0.0.254:8006/api2/json
-            insecure: true
-            token_id_file: /run/secrets/homelab/token_id
-            token_secret_file: /run/secrets/homelab/token_secret
-            region: homelab
+      existingConfigSecret: proxmox-cloud-controller-manager
       enabledControllers:
         - cloud-node
         - cloud-node-lifecycle

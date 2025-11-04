@@ -7,16 +7,10 @@ app:
     path: charts/proxmox-csi-plugin
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-system
+    namespace: csi-proxmox
   helm:
     values: |
-      config:
-        clusters:
-          - url: http://10.0.0.254:8006/api2/json
-            insecure: true
-            token_id_file: /run/secrets/homelab/token_id
-            token_secret_file: /run/secrets/homelab/token_secret
-            region: homelab
+      existingConfigSecret: proxmox-csi-plugin
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

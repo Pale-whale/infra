@@ -32,10 +32,6 @@ resource "proxmox_virtual_environment_download_file" "talos_nocloud_image" {
   file_name = "talos-${var.talos_version}-${talos_image_factory_schematic.this.id}-nocloud-amd64.raw"
   url       = trimsuffix(data.talos_image_factory_urls.this.urls.disk_image, ".xz")
   overwrite = false
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "talos_cluster_kubeconfig" "kubeconfig" {
@@ -79,7 +75,7 @@ resource "kubernetes_secret" "proxmox_ccm_credentials" {
   depends_on = [data.talos_cluster_health.health]
 
   metadata {
-    name      = "proxmox-ccm-credentials"
+    name      = "proxmox-cloud-controller-manager"
     namespace = "kube-system"
     labels = {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
@@ -87,8 +83,14 @@ resource "kubernetes_secret" "proxmox_ccm_credentials" {
   }
 
   data = {
-    token_id     = proxmox_virtual_environment_user_token.ccm.id
-    token_secret = proxmox_virtual_environment_user_token.ccm.value
+    "config.yaml"  = <<EOT
+clusters:
+  - url: http://10.0.0.254:8006/api2/json
+    insecure: true
+    token_id: "${proxmox_virtual_environment_user_token.ccm.id}"
+    token_secret: "${proxmox_virtual_environment_user_token.ccm.value}"
+    region: Region-1
+EOT
   }
 
   type = "Opaque"
@@ -125,7 +127,7 @@ resource "kubernetes_secret" "proxmox_csi_credentials" {
   depends_on = [data.talos_cluster_health.health]
 
   metadata {
-    name      = "proxmox-csi-credentials"
+    name      = "proxmox-csi-plugin"
     namespace = "kube-system"
     labels = {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
@@ -133,8 +135,14 @@ resource "kubernetes_secret" "proxmox_csi_credentials" {
   }
 
   data = {
-    token_id     = proxmox_virtual_environment_user_token.csi.id
-    token_secret = proxmox_virtual_environment_user_token.csi.value
+    "config.yaml"  = <<EOT
+clusters:
+  - url: http://10.0.0.254:8006/api2/json
+    insecure: true
+    token_id: "${proxmox_virtual_environment_user_token.ccm.id}"
+    token_secret: "${proxmox_virtual_environment_user_token.ccm.value}"
+    region: Region-1
+EOT
   }
 
   type = "Opaque"

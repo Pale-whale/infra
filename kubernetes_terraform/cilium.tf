@@ -18,6 +18,7 @@ resource "helm_release" "cilium" {
   repository = "https://helm.cilium.io/"
   chart      = "cilium"
   version    = var.cilium_version
+  upgrade_install  = true
 
   values = [templatefile("${path.module}/values/cilium.yaml.tpl", {
     native_cidr = var.pod_subnet
