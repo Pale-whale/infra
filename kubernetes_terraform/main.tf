@@ -88,8 +88,8 @@ clusters:
   - url: http://10.0.0.254:8006/api2/json
     insecure: true
     token_id: "${proxmox_virtual_environment_user_token.ccm.id}"
-    token_secret: "${proxmox_virtual_environment_user_token.ccm.value}"
-    region: Region-1
+    token_secret: "${split("=", proxmox_virtual_environment_user_token.ccm.value)[1]}"
+    region: homelab
 EOT
   }
 
@@ -128,7 +128,7 @@ resource "kubernetes_secret" "proxmox_csi_credentials" {
 
   metadata {
     name      = "proxmox-csi-plugin"
-    namespace = "kube-system"
+    namespace = "csi-proxmox"
     labels = {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
     }
@@ -139,9 +139,9 @@ resource "kubernetes_secret" "proxmox_csi_credentials" {
 clusters:
   - url: http://10.0.0.254:8006/api2/json
     insecure: true
-    token_id: "${proxmox_virtual_environment_user_token.ccm.id}"
-    token_secret: "${proxmox_virtual_environment_user_token.ccm.value}"
-    region: Region-1
+    token_id: "${proxmox_virtual_environment_user_token.csi.id}"
+    token_secret: "${split("=", proxmox_virtual_environment_user_token.csi.value)[1]}"
+    region: homelab
 EOT
   }
 
