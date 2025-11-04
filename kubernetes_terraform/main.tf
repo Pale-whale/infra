@@ -32,6 +32,10 @@ resource "proxmox_virtual_environment_download_file" "talos_nocloud_image" {
   file_name = "talos-${var.talos_version}-${talos_image_factory_schematic.this.id}-nocloud-amd64.raw"
   url       = trimsuffix(data.talos_image_factory_urls.this.urls.disk_image, ".xz")
   overwrite = false
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "talos_cluster_kubeconfig" "kubeconfig" {
