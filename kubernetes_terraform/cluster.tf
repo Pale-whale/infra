@@ -45,15 +45,17 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
   config_patches = [
     templatefile("${path.module}/talos-config/control-plane.yaml.tpl", {
-      kubeapi_fqdn      = var.kubeapi_fqdn
-      kubeapi_address   = var.kubeapi_address
-      extra_sans        = var.kubeapi_extra_sans
-      ipv4_local        = local.controlplane[each.key].ip
-      network_gateway   = var.default_gateway
-      hostname          = each.key
-      network_ip_prefix = "24"
-      pod_subnet        = var.pod_subnet
-      services_subnet   = var.services_subnet
+      kubeapi_fqdn       = var.kubeapi_fqdn
+      kubeapi_address    = var.kubeapi_address
+      extra_sans         = var.kubeapi_extra_sans
+      ipv4_local         = local.controlplane[each.key].ip
+      network_gateway    = var.default_gateway
+      hostname           = each.key
+      network_ip_prefix  = "24"
+      pod_subnet         = var.pod_subnet
+      services_subnet    = var.services_subnet
+      proxmox_datacenter = var.cluster_name
+      vm_id              = local.controlplane[each.key].vm_id
     })
   ]
 }
@@ -90,11 +92,13 @@ resource "talos_machine_configuration_apply" "worker" {
 
   config_patches = [
     templatefile("${path.module}/talos-config/worker.yaml.tpl", {
-      hostname          = each.key
-      network_interface = "eth0"
-      ipv4_local        = local.workers[each.key].ip
-      network_ip_prefix = "24"
-      network_gateway   = var.default_gateway
+      hostname           = each.key
+      network_interface  = "eth0"
+      ipv4_local         = local.workers[each.key].ip
+      network_ip_prefix  = "24"
+      network_gateway    = var.default_gateway
+      proxmox_datacenter = var.cluster_name
+      vm_id              = local.controlplane[each.key].vm_id
     })
   ]
 }

@@ -83,7 +83,7 @@ resource "kubernetes_secret" "proxmox_ccm_credentials" {
   }
 
   data = {
-    "config.yaml"  = <<EOT
+    "config.yaml" = <<EOT
 clusters:
   - url: http://10.0.0.254:8006/api2/json
     insecure: true
@@ -135,7 +135,7 @@ resource "kubernetes_secret" "proxmox_csi_credentials" {
   }
 
   data = {
-    "config.yaml"  = <<EOT
+    "config.yaml" = <<EOT
 clusters:
   - url: http://10.0.0.254:8006/api2/json
     insecure: true

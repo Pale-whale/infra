@@ -1,4 +1,7 @@
 machine:
+  kubelet:
+    extraArgs:
+      provider-id: proxmox://${proxmox_datacenter}/${vm_id}
   certSANs:
     - ${kubeapi_fqdn}
     - ${kubeapi_address}

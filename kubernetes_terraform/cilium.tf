@@ -13,12 +13,12 @@ resource "helm_release" "cilium" {
   depends_on = [data.talos_cluster_health.kubeapi_up]
   count      = var.deploy_cilium_cni ? 1 : 0
 
-  name       = "cilium"
-  namespace  = "kube-system"
-  repository = "https://helm.cilium.io/"
-  chart      = "cilium"
-  version    = var.cilium_version
-  upgrade_install  = true
+  name            = "cilium"
+  namespace       = "kube-system"
+  repository      = "https://helm.cilium.io/"
+  chart           = "cilium"
+  version         = var.cilium_version
+  upgrade_install = true
 
   values = [templatefile("${path.module}/values/cilium.yaml.tpl", {
     native_cidr = var.pod_subnet
