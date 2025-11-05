@@ -60,6 +60,8 @@ extraObjects:
 %{ for vf in app.value_files ~}
             - "${ vf }"
 %{ endfor }
+          values: |
+            ${ indent(12, yamlencode(app.values)) }
       destination:
         server: https://kubernetes.default.svc
         namespace: argocd

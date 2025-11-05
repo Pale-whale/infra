@@ -4,17 +4,11 @@ resource "tls_private_key" "argocd" {
   algorithm = var.argocd_private_repo.key_algorithm
 }
 
-data "tls_public_key" "argocd" {
-  count = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
-
-  private_key_pem = tls_private_key.argocd[0].private_key_pem
-}
-
 resource "github_user_ssh_key" "argocd" {
   count = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
 
   title = var.argocd_private_repo.key_name
-  key   = data.tls_public_key.argocd[0].public_key_openssh
+  key   = tls_private_key.argocd[0].public_key_openssh
 }
 
 resource "helm_release" "argocd_bootstrap" {
@@ -64,7 +58,7 @@ resource "kubernetes_secret" "argocd_repo" {
   data = {
     type          = "git"
     url           = var.argocd_private_repo.url
-    sshPrivateKey = tls_private_key.argocd[0].private_key_pem
+    sshPrivateKey = tls_private_key.argocd[0].private_key_openssh
   }
 
   type = "Opaque"

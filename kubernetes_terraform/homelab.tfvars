@@ -203,5 +203,10 @@ argocd_extra_applications = {
     target_revision = "HEAD"
     path            = "k8s/root_app"
     value_files     = []
+    values          = {
+      repository = {
+        url = "git@github.com:pale-whale/infra.git"
+      }
+    }
   }
 }

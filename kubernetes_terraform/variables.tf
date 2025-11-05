@@ -85,6 +85,7 @@ variable "argocd_extra_applications" {
     target_revision = string
     path            = string
     value_files     = optional(list(string), [])
+    values          = any
   }))
   default = {}
 }
