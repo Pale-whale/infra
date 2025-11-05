@@ -86,9 +86,9 @@ app:
         spec:
           project: infra
           source:
-            repoURL: git@github.com:Pale-Whale/kube-root-app.git
+            repoURL: git@github.com:Pale-Whale/infra.git
             targetRevision: HEAD
-            path: .
+            path: k8s/applications
             helm:
               releaseName: root
               valueFiles:
