@@ -21,14 +21,6 @@ app:
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           effect: NoSchedule
-      extraVolumes:
-        - name: credentials-homelab
-          secret:
-            secretName: proxmox-ccm-credentials
-      extraVolumeMounts:
-        - name: credentials-homelab
-          readOnly: true
-          mountPath: "/run/secrets/homelab"
       storageClass:
         - name: proxmox-local-xfs
           storage: local-lvm
