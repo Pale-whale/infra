@@ -55,7 +55,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
       pod_subnet         = var.pod_subnet
       services_subnet    = var.services_subnet
       proxmox_datacenter = var.cluster_name
-      vm_id              = uuidv5("oid", each.key)
+      vm_id              = local.controlplane[each.key].vm_id
     })
   ]
 }
@@ -98,7 +98,7 @@ resource "talos_machine_configuration_apply" "worker" {
       network_ip_prefix  = "24"
       network_gateway    = var.default_gateway
       proxmox_datacenter = var.cluster_name
-      vm_id              = uuidv5("oid", each.key)
+      vm_id              = local.workers[each.key].vm_id
     })
   ]
 }

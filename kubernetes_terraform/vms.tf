@@ -35,7 +35,7 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
   }
 
   smbios {
-    uuid = uuidv5("oid", each.key)
+    uuid = each.value.vm_id
   }
 
   network_device {
@@ -127,7 +127,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
   }
 
   smbios {
-    uuid = uuidv5("oid", each.key)
+    uuid = each.value.vm_id
   }
 
   network_device {
