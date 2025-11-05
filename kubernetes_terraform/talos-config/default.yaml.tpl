@@ -2,6 +2,8 @@ machine:
   kubelet:
     extraArgs:
       cloud-provider: external
+    clusterDNS:
+      - 172.16.0.10
 
   kernel:
     modules:

@@ -52,7 +52,7 @@ resource "proxmox_virtual_environment_role" "ccm" {
   role_id = "kubernetes-ccm"
 
   privileges = [
-    "VM.Audit",
+    "VM.Audit"
   ]
 }
 
@@ -65,10 +65,19 @@ resource "proxmox_virtual_environment_user" "ccm" {
 }
 
 resource "proxmox_virtual_environment_user_token" "ccm" {
-  comment         = "Managed by Terraform"
-  expiration_date = "2046-01-01T22:00:00Z"
-  token_name      = "kubernetes-token"
-  user_id         = proxmox_virtual_environment_user.ccm.user_id
+  comment               = "Managed by Terraform"
+  expiration_date       = "2046-01-01T22:00:00Z"
+  token_name            = "kubernetes-token"
+  user_id               = proxmox_virtual_environment_user.ccm.user_id
+  privileges_separation = false
+}
+
+resource "proxmox_virtual_environment_acl" "ccm" {
+  user_id = proxmox_virtual_environment_user.ccm.user_id
+  role_id = proxmox_virtual_environment_role.ccm.role_id
+
+  path      = "/"
+  propagate = true
 }
 
 resource "kubernetes_secret" "proxmox_ccm_credentials" {
@@ -117,10 +126,19 @@ resource "proxmox_virtual_environment_user" "csi" {
 }
 
 resource "proxmox_virtual_environment_user_token" "csi" {
-  comment         = "Managed by Terraform"
-  expiration_date = "2046-01-01T22:00:00Z"
-  token_name      = "kubernetes-token"
-  user_id         = proxmox_virtual_environment_user.csi.user_id
+  comment               = "Managed by Terraform"
+  expiration_date       = "2046-01-01T22:00:00Z"
+  token_name            = "kubernetes-token"
+  user_id               = proxmox_virtual_environment_user.csi.user_id
+  privileges_separation = false
+}
+
+resource "proxmox_virtual_environment_acl" "csi" {
+  user_id = proxmox_virtual_environment_user.csi.user_id
+  role_id = proxmox_virtual_environment_role.csi.role_id
+
+  path      = "/"
+  propagate = true
 }
 
 resource "kubernetes_secret" "proxmox_csi_credentials" {
