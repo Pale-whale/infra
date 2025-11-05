@@ -110,15 +110,15 @@ app:
             failureDomain: host
             replicated:
               size: 2
-            storageClass:
-              enabled: true
-              name: ceph-block
-              isDefault: true
-              reclaimPolicy: Delete
-              allowVolumeExpansion: true
-              volumeBindingMode: "Immediate"
-              parameters:
-                csi.storage.k8s.io/fstype: ext4
+          storageClass:
+            enabled: true
+            name: ceph-block
+            isDefault: true
+            reclaimPolicy: Delete
+            allowVolumeExpansion: true
+            volumeBindingMode: "Immediate"
+            parameters:
+              csi.storage.k8s.io/fstype: ext4
       cephFileSystems:
         - name: ceph-filesystem
           spec:
