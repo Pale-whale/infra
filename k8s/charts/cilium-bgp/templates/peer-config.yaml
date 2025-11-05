@@ -1,0 +1,15 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeerConfig
+metadata:
+  name: {{ .Values.peer.name }}
+spec:
+  gracefulRestart:
+    enabled: true
+    restartTimeSeconds: 15
+  ebgpMultihop: 4
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: "bgp"

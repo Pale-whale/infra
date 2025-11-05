@@ -1,0 +1,15 @@
+app:
+  name: cilium-bgp
+  project: infra
+  source:
+    repoURL: git@github.com:pale-whale/infra.git
+    targetRevision: HEAD
+    path: k8s/charts/cilium-bgp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-config
+  helm:
+    values: |
+      peer:
+        name: opnsense
+        address: '10.0.0.254'

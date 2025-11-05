@@ -1,0 +1,3 @@
+peer:
+  name: peer
+  address: '10.0.0.254'
