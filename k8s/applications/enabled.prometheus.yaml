@@ -1,0 +1,66 @@
+app:
+  name: kube-prometheus-stack
+  project: infra
+  source:
+    repoURL: git@github.com:prometheus-community/helm-charts.git
+    targetRevision: kube-prometheus-stack-69.8.2
+    path: charts/kube-prometheus-stack
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-prometheus-stack
+  helm:
+    values: |
+      alertmanager:
+        enabled: false
+      grafana:
+        defaultDashboardsTimezone: browser
+        ingress:
+          enabled: true
+          hosts:
+            - grafana.palewhale.fr
+        persistence:
+          enabled: true
+          storageClassName: ceph-block
+          size: 20Gi
+        grafana.ini:
+          server:
+            root_url: https://grafana.palewhale.fr
+            domain: grafana.palewhale.fr
+          auth.generic_oauth:
+            enabled: true
+            name: Keycloak
+            role_attribute_path: |
+              contains(roles[*], 'grafanaadmin') && 'GrafanaAdmin' || contains(roles[*], 'admin') && 'Admin' || contains(roles[*], 'editor') && 'Editor' || 'Viewer'
+            allow_assign_grafana_admin: true
+            client_id: grafana
+            client_secret: $__file{/etc/secrets/oauth_secrets/client_secret}
+            auth_url: "https://keycloak.palewhale.fr/realms/homelab/protocol/openid-connect/auth"
+            token_url: "https://keycloak.palewhale.fr/realms/homelab/protocol/openid-connect/token"
+            api_url: "https://keycloak.palewhale.fr/realms/homelab/protocol/openid-connect/userinfo"
+        extraSecretMounts:
+          - name: oauth-secrets-mount
+            secretName: oauth
+            defaultMode: 0440
+            mountPath: /etc/secrets/oauth_secrets
+            readOnly: true
+      prometheus:
+        prometheusSpec:
+          serviceMonitorSelectorNilUsesHelmValues: false
+          retention: 15d
+          scrapeInterval: 30s
+          resources:
+            requests:
+              memory: 4Gi
+              cpu: 500m
+            limits:
+              memory: 8Gi
+              cpu: 3500m
+          storageSpec:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: ceph-block
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 64Gi
