@@ -1,8 +1,8 @@
 machine:
   kubelet:
     extraArgs:
-      provider-id: proxmox://${proxmox_datacenter}/${vm_id}
-      node-ip ${ipv4_local}
+      provider-id: "proxmox://${proxmox_datacenter}/${vm_id}"
+      node-ip: "${ipv4_local}"
   certSANs:
     - ${kubeapi_fqdn}
     - ${kubeapi_address}
