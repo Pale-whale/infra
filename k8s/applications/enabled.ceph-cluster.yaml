@@ -78,6 +78,18 @@ app:
                 operator: "Exists"
                 effect: "NoSchedule"
         resources:
+          mon:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            mgr:
+              limits:
+                memory: 1Gi
+              requests:
+                cpu: 300m
+                memory: 512Mi
           osd:
             limits:
               memory: "8Gi"
