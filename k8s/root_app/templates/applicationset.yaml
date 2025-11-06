@@ -22,7 +22,6 @@ spec:
       source:
         repoURL: {{ include "escape" "{{.app.source.repoURL}}" }}
         targetRevision: {{ include "escape" "{{.app.source.targetRevision}}" }}
-        chart: {{ include "escape" "{{ eq .app.source.chart nil | ternary nil .chart }}" }}
         path: {{ include "escape" "{{.app.source.path}}" }}
         helm:
           releaseName: {{ include "escape" "{{.app.name}}" }}
