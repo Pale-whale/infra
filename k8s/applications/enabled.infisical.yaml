@@ -12,6 +12,8 @@ app:
     values: |
       ingress:
         enabled: false
+        nginx:
+          enabled: false
         hostName: secrets.palewhale.fr
         ingressClassName: traefik
       postgresql:
