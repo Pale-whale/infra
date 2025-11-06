@@ -17,10 +17,10 @@ app:
           owner: infisical
         storage:
           size: 16Gi
-          storageClass: block
+          storageClass: ceph-block
         walStorage:
           size: 2Gi
-          storageClass: block
+          storageClass: ceph-block
         resources:
           limits:
             memory: 4Gi
