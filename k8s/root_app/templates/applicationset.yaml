@@ -10,9 +10,6 @@ spec:
   - git:
       repoURL: {{ .Values.repository.url }}
       revision: HEAD
-      {{ include "escape" "{{ if app.source.chart }}" }}
-      chart: {{ include "escape" "{{ .chart }}" }}
-      {{ include "escape" "{{ end }}" }}
       files:
       - path: {{ .Values.repository.path }}
   template:
@@ -25,6 +22,7 @@ spec:
       source:
         repoURL: {{ include "escape" "{{app.source.repoURL}}" }}
         targetRevision: {{ include "escape" "{{app.source.targetRevision}}" }}
+        chart: {{ include "escape" "{{ ternary .chart null .app.source.chart }}" }}
         path: {{ include "escape" "{{app.source.path}}" }}
         helm:
           releaseName: {{ include "escape" "{{app.name}}" }}
