@@ -3,4 +3,4 @@
 repository:
   url: ''
   git:
-    path: 'k8s/applications/git/.*.yaml'
+    path: 'k8s/applications/git/*.yaml'
