@@ -14,22 +14,22 @@ spec:
       - path: {{ .Values.repository.path }}
   template:
     metadata:
-      name: {{ include "escape" "{{app.name}}" }}
+      name: {{ include "escape" "{{.app.name}}" }}
       finalizers:
       - resources-finalizer.argocd.argoproj.io
     spec:
-      project: {{ include "escape" "{{app.project}}" }}
+      project: {{ include "escape" "{{.app.project}}" }}
       source:
-        repoURL: {{ include "escape" "{{app.source.repoURL}}" }}
-        targetRevision: {{ include "escape" "{{app.source.targetRevision}}" }}
+        repoURL: {{ include "escape" "{{.app.source.repoURL}}" }}
+        targetRevision: {{ include "escape" "{{.app.source.targetRevision}}" }}
         chart: {{ include "escape" "{{ ternary .chart null .app.source.chart }}" }}
-        path: {{ include "escape" "{{app.source.path}}" }}
+        path: {{ include "escape" "{{.app.source.path}}" }}
         helm:
-          releaseName: {{ include "escape" "{{app.name}}" }}
-          values: {{ include "escape" "{{app.helm.values}}" }}
+          releaseName: {{ include "escape" "{{.app.name}}" }}
+          values: {{ include "escape" "{{.app.helm.values}}" }}
       destination:
-        server: {{ include "escape" "{{app.destination.server}}" }}
-        namespace: {{ include "escape" "{{app.destination.namespace}}" }}
+        server: {{ include "escape" "{{.app.destination.server}}" }}
+        namespace: {{ include "escape" "{{.app.destination.namespace}}" }}
       syncPolicy:
         syncOptions:
           - CreateNamespace=true
