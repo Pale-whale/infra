@@ -19,6 +19,7 @@ app:
           size: 16Gi
           storageClass: ceph-block
         walStorage:
+          enabled: true
           size: 2Gi
           storageClass: ceph-block
         resources:
@@ -26,7 +27,7 @@ app:
             memory: 4Gi
           requests:
             cpu: '300m'
-            memory: 4Gi
+            memory: 1Gi
         logLevel: warning
         roles:
           - name: infisical

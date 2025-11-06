@@ -9,4 +9,10 @@ app:
     server: https://kubernetes.default.svc
     namespace: cloud-native-pg
   helm:
-    values: ''
+    values: |
+      resources:
+        limits:
+          memory: 500m
+        requests:
+          cpu: 100m
+          memory: 200m
