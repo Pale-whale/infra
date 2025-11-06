@@ -12,7 +12,7 @@ app:
     values: |
       resources:
         limits:
-          memory: 500m
+          memory: 500Mi
         requests:
           cpu: 100m
-          memory: 200m
+          memory: 200Mi
