@@ -7,7 +7,7 @@ app:
     path: deploy/charts/rook-ceph-cluster
   destination:
     server: https://kubernetes.default.svc
-    namespace: ceph-cluster
+    namespace: rook-ceph
   helm:
     values: |
       operatorNamespace: rook-ceph
@@ -131,8 +131,6 @@ app:
             volumeBindingMode: "Immediate"
             parameters:
               csi.storage.k8s.io/fstype: ext4
-              csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
-              csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
       cephFileSystems:
         - name: ceph-filesystem
           spec:
@@ -164,6 +162,4 @@ app:
             volumeBindingMode: "Immediate"
             parameters:
               csi.storage.k8s.io/fstype: ext4
-              csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
-              csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
       cephObjectStores: {}
