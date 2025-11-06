@@ -1,0 +1,12 @@
+app:
+  name: cloud-native-pg
+  project: infra
+  source:
+    repoURL: git@github.com:cloudnative-pg/charts.git
+    targetRevision: cloudnative-pg-v0.26.1
+    path: charts/cloudnative-pg
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cloud-native-pg
+  helm:
+    values: ''

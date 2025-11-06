@@ -1,0 +1,23 @@
+app:
+  name: infisical
+  project: infra
+  source:
+    repoURL: git@github.com:Infisical/infisical
+    targetRevision: v0.153.3
+    path: helm-charts/infisical-standalone-postgres
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: infisical
+  helm:
+    values: |
+      ingress:
+        enabled: false
+        hostName: secrets.palewhale.fr
+        ingressClassName: traefik
+      postgresql:
+        enabled: false
+        useExistingPostgresSecret:
+          enabled: true
+          existingConnectionStringSecret:
+            key: uri
+            name: infisical-cluster-app
