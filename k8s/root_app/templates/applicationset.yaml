@@ -10,7 +10,7 @@ spec:
   - git:
       repoURL: {{ .Values.repository.url }}
       revision: HEAD
-      {{ include "escape" "{{ if .chart }}" }}
+      {{ include "escape" "{{ if app.source.chart }}" }}
       chart: {{ include "escape" "{{ .chart }}" }}
       {{ include "escape" "{{ end }}" }}
       files:
