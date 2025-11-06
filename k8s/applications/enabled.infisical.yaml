@@ -22,4 +22,4 @@ app:
           enabled: true
           existingConnectionStringSecret:
             key: uri
-            name: infisical-cluster-app
+            name: infisical-pg-cluster-app
