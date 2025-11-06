@@ -2,7 +2,8 @@ app:
   name: external-secret-operator
   project: infra
   source:
-    repoURL: git@github.com:external-secrets/external-secrets.git
+    repoURL: https://charts.external-secrets.io
+    chart: external-secrets
     targetRevision: v0.20.4
     path: deploy/charts/external-secrets
   destination:

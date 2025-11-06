@@ -5,10 +5,14 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
+  goTemplate: true
   generators:
   - git:
       repoURL: {{ .Values.repository.url }}
       revision: HEAD
+      {{ include "escape" "{{ if .chart }}" }}
+      chart: {{ include "escape" "{{ .chart }}" }}
+      {{ include "escape" "{{ end }}" }}
       files:
       - path: {{ .Values.repository.path }}
   template:
