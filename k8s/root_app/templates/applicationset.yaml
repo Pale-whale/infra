@@ -1,6 +1,3 @@
-{{- define "escape" -}}
-{{- print . | squote }}
-{{- end -}}
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
@@ -13,7 +10,7 @@ spec:
       repoURL: {{ .Values.repository.url }}
       revision: HEAD
       files:
-      - path: {{ .Values.repository.git.path }}
+      - path: {{ .Values.repository.path }}
   template:
     metadata:
       name: {{ include "escape" "{{app.name}}" }}
