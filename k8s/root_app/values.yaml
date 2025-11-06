@@ -2,4 +2,5 @@
 
 repository:
   url: ''
-  path: 'k8s/applications/enabled.*.yaml'
+  git:
+    path: 'k8s/applications/git/.*.yaml'

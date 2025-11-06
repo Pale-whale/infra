@@ -4,7 +4,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: root-set
+  name: root-set-git
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
@@ -13,7 +13,7 @@ spec:
       repoURL: {{ .Values.repository.url }}
       revision: HEAD
       files:
-      - path: {{ .Values.repository.path }}
+      - path: {{ .Values.repository.git.path }}
   template:
     metadata:
       name: {{ include "escape" "{{app.name}}" }}

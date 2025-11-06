@@ -1,0 +1,26 @@
+app:
+  name: external-dns
+  project: infra
+  source:
+    repoURL: git@github.com:kubernetes-sigs/external-dns.git
+    targetRevision: v0.19.0
+    path: charts/external-dns
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns
+  helm:
+    values: |
+      provider:
+        name: cloudflare
+      policy: sync
+      txtOwnerId: homelab
+      extraArgs:
+        - --cloudflare-proxied
+        - --cloudflare-dns-records-per-page=200
+      env:
+        - name: CF_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare-api-key
+              key: apiKey
+
