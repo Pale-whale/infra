@@ -136,18 +136,18 @@ spec:
         name: {{ include "transmission-openvpn.fullname" . | printf "config-%s" }}
       spec:
         storageClassName: {{ .Values.transmission.persistence.config.storageClassName }}
-        accessModes: {{- .Values.transmission.persistence.config.accessModes | toYaml | nindent 2 }}
+        accessModes: {{- .Values.transmission.persistence.config.accessModes | toYaml | nindent 8 }}
         resources:
           requests:
             storage: {{ .Values.transmission.persistence.config.size }}
     {{- end }}
     {{- if .Values.transmission.persistence.downloads.enabled }}
-  - metadata:
-      name: {{ include "transmission-openvpn.fullname" . | printf "downloads-%s" }}
-    spec:
-      storageClassName: {{ .Values.transmission.persistence.downloads.storageClassName }}
-      accessModes: {{- .Values.transmission.persistence.downloads.accessModes | toYaml | nindent 2 }}
-      resources:
-        requests:
-          storage: {{ .Values.transmission.persistence.downloads.size }}
+    - metadata:
+        name: {{ include "transmission-openvpn.fullname" . | printf "downloads-%s" }}
+      spec:
+        storageClassName: {{ .Values.transmission.persistence.downloads.storageClassName }}
+        accessModes: {{- .Values.transmission.persistence.downloads.accessModes | toYaml | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.transmission.persistence.downloads.size }}
     {{- end }}
