@@ -20,17 +20,18 @@ app:
         - name: TRANSMISSION_INCOMPLETE_DIR
           value: '/downloads/incomplete'
         provider:
-          name: nordvpn
-          endpoint: FR
+          name: PIA
           localNetwork: '10.0.0.0/8,172.16.0.0/16'
-          category: legacy_p2p
-          protocol: udp
           create_tun_device: 'false'
+          endpoint: france
           user:
-            extraSecret:
-              name: vpn-creds
-              userKey: vpn-username
-              passwordKey: vpn-password
+            externalSecret:
+              secretStoreRef:
+                kind: ClusterSecretStore
+                name: infisical
+              secret:
+                userKey: transmission-vpn/username
+                passwordKey: transmission-vpn/password
         rpc:
           enabled: true
           auth_required: true
@@ -39,10 +40,9 @@ app:
               secretStoreRef:
                 kind: ClusterSecretStore
                 name: infisical
-            extraSecret:
-              name: creds
-              userKey: transmission-rpc/username
-              passwordKey: transmission-rpc/password
+              secret:
+                userKey: transmission-rpc/username
+                passwordKey: transmission-rpc/password
 
         persistence:
           config:
