@@ -21,7 +21,7 @@ app:
         cm:
           oidc.config: |
             name: Keycloak
-            issuer: https://keycloak.palewhale.fr/realms/master
+            issuer: https://keycloak.palewhale.fr/realms/homelab
             clientID: argocd
             clientSecret: $oidc.keycloak.clientSecret
             requestedScopes: ["openid", "profile", "email", "groups"]
