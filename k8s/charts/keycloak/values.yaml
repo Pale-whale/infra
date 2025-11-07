@@ -1,4 +1,5 @@
 keycloak:
+  name: keycloak
   hostname: example.com
   
 database:
