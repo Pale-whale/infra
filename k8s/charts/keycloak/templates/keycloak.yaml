@@ -6,12 +6,12 @@ spec:
   instances: 1
   db:
     vendor: postgres
-    host: {{ printf "%s-pg-rw" .Values.database.fullNameOverride }}
+    host: {{ printf "%s-database-rw" .Values.database.fullNameOverride }}
     usernameSecret:
-      name: {{ printf "%s-pg-app" .Values.database.fullNameOverride }}
+      name: {{ printf "%s-database-app" .Values.database.fullNameOverride }}
       key: username
     passwordSecret:
-      name: {{ printf "%s-pg-app" .Values.database.fullNameOverride }}
+      name: {{ printf "%s-database-app" .Values.database.fullNameOverride }}
       key: password
   http:
     httpEnabled: true
