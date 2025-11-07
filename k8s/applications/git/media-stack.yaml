@@ -10,58 +10,59 @@ app:
     namespace: media
   helm:
     values: |
-      image:
-        tag: 5.3.1
-      user:
-        uid: 1000
-        gid: 1000
-      extraEnv:
-      - name: TRANSMISSION_INCOMPLETE_DIR
-        value: '/downloads/incomplete'
-      provider:
-        name: nordvpn
-        endpoint: FR
-        localNetwork: '10.0.0.0/8,172.16.0.0/16'
-        category: legacy_p2p
-        protocol: udp
-        create_tun_device: 'false'
+      transmission:
+        image:
+          tag: 5.3.1
         user:
-          extraSecret:
-            name: vpn-creds
-            userKey: vpn-username
-            passwordKey: vpn-password
-      rpc:
-        enabled: true
-        auth_required: true
-        user:
-          externalSecret:
-            secretStoreRef:
-              kind: ClusterSecretStore
-              name: infisical
-          extraSecret:
-            name: creds
-            userKey: transmission-rpc/username
-            passwordKey: transmission-rpc/password
-
-      persistence:
-        config:
+          uid: 1000
+          gid: 1000
+        extraEnv:
+        - name: TRANSMISSION_INCOMPLETE_DIR
+          value: '/downloads/incomplete'
+        provider:
+          name: nordvpn
+          endpoint: FR
+          localNetwork: '10.0.0.0/8,172.16.0.0/16'
+          category: legacy_p2p
+          protocol: udp
+          create_tun_device: 'false'
+          user:
+            extraSecret:
+              name: vpn-creds
+              userKey: vpn-username
+              passwordKey: vpn-password
+        rpc:
           enabled: true
-          storageClassName: block
-          size: 500Mi
-        downloads:
-          enabled: true
-          storageClassName: filesystem
-          accessModes:
-            - ReadWriteMany
-          size: 1500Gi
+          auth_required: true
+          user:
+            externalSecret:
+              secretStoreRef:
+                kind: ClusterSecretStore
+                name: infisical
+            extraSecret:
+              name: creds
+              userKey: transmission-rpc/username
+              passwordKey: transmission-rpc/password
 
-      ingress:
-        enabled: true
-        annotations:
-          traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
-          traefik.ingress.kubernetes.io/router.tls: 'true'
-        hosts:
-        - host: transmission.palewhale.fr
-          paths:
-          - path: /
-            pathType: ImplementationSpecific
+        persistence:
+          config:
+            enabled: true
+            storageClassName: block
+            size: 500Mi
+          downloads:
+            enabled: true
+            storageClassName: filesystem
+            accessModes:
+              - ReadWriteMany
+            size: 1500Gi
+
+        ingress:
+          enabled: true
+          annotations:
+            traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
+            traefik.ingress.kubernetes.io/router.tls: 'true'
+          hosts:
+          - host: transmission.palewhale.fr
+            paths:
+            - path: /
+              pathType: ImplementationSpecific
