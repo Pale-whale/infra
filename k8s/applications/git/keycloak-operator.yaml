@@ -1,0 +1,12 @@
+app:
+  name: keycloak-operator
+  project: infra
+  source:
+    repoURL: git@github.com:pale-whale/infra.git
+    targetRevision: HEAD
+    path: k8s/charts/keycloak-operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak-operator
+  helm:
+    values: ''

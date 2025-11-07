@@ -1,0 +1,8 @@
+apiVersion: v2
+name: keycloak-operator
+description: deploy the keycloak operator
+
+type: application
+
+appVersion: 26.4.4
+version: 0.0.1

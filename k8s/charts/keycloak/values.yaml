@@ -1,0 +1,20 @@
+keycloak:
+  hostname: example.com
+  
+database:
+  enabled: true
+  fullNameOverride: keycloak
+  instances: 2
+  initdb:
+    database: keycloak
+    owner: keycloak
+  storage:
+    size: 16Gi
+  walStorage:
+    enabled: true
+    size: 2Gi
+  roles:
+    - name: keycloak
+      ensure: present
+      login: true
+      superuser: false

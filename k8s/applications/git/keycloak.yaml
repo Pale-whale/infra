@@ -1,0 +1,32 @@
+app:
+  name: keycloak
+  project: infra
+  source:
+    repoURL: git@github.com:pale-whale/infra.git
+    targetRevision: HEAD
+    path: k8s/charts/keycloak
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  helm:
+    values: |
+      keycloak:
+        hostname: keycloak.palewhale.fr
+      database:
+        instances: 1
+        storage:
+          size: 16Gi
+          storageClass: ceph-block
+        walStorage:
+          enabled: true
+          size: 2Gi
+          storageClass: ceph-block
+        resources:
+          limits:
+            memory: 4Gi
+          requests:
+            cpu: '300m'
+            memory: 1Gi
+        postgresql:
+          pg_hba:
+            - host all all 10.0.0.0/8 md5

@@ -1,0 +1,21 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: {{ .Values.keycloak.name }}
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: {{ printf "%s-pg-cluster-rw" .Values.database.fullNameOverride }}
+    usernameSecret:
+      name: {{ printf "%s-pg-cluster-app" .Values.database.fullNameOverride }}
+      key: username
+    passwordSecret:
+      name: {{ printf "%s-pg-cluster-app" .Values.database.fullNameOverride }}
+      key: password
+  http:
+    httpEnabled: true
+  hostname:
+    hostname: {{ .Values.keycloak.hostname }}
+  proxy:
+    headers: xforwarded
