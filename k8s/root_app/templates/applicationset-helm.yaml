@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: root-set-helm
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  generators:
+  - git:
+      repoURL: {{ .Values.repository.url }}
+      revision: HEAD
+      files:
+      - path: {{ .Values.repository.helm.path }}
+  template:
+    metadata:
+      name: {{ include "escape" "{{app.name}}" }}
+      finalizers:
+      - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: {{ include "escape" "{{app.project}}" }}
+      source:
+        repoURL: {{ include "escape" "{{app.source.repoURL}}" }}
+        targetRevision: {{ include "escape" "{{app.source.targetRevision}}" }}
+        chart: {{ include "escape" "{{app.source.chart}}" }}
+        helm:
+          releaseName: {{ include "escape" "{{app.name}}" }}
+          values: {{ include "escape" "{{app.helm.values}}" }}
+      destination:
+        server: {{ include "escape" "{{app.destination.server}}" }}
+        namespace: {{ include "escape" "{{app.destination.namespace}}" }}
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
