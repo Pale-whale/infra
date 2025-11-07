@@ -31,7 +31,7 @@ app:
                 name: infisical
               secret:
                 userKey: transmission-vpn/username
-                passwordKey: transmission-vpn/password
+                passKey: transmission-vpn/password
         rpc:
           enabled: true
           auth_required: true
@@ -42,7 +42,7 @@ app:
                 name: infisical
               secret:
                 userKey: transmission-rpc/username
-                passwordKey: transmission-rpc/password
+                passKey: transmission-rpc/password
 
         persistence:
           config:
