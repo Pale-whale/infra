@@ -37,7 +37,7 @@ spec:
           mountPath: /ro
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: transmission
           securityContext:
             {{- toYaml .Values.transmission.securityContext | nindent 12 }}
           image: "{{ .Values.transmission.image.repository }}:{{ .Values.transmission.image.tag | default .Chart.AppVersion }}"
@@ -45,11 +45,11 @@ spec:
           env: {{- include "transmission-openvpn.provider-config" $ | nindent 10 -}}
           {{- include "transmission-openvpn.rpc-config" $ | nindent 10 }}
           - name: TZ
-            value: {{ .Values.transmission.timezone | squote }}
+            value: {{ .Values.global.timezone | squote }}
           - name: PUID
-            value: {{ .Values.transmission.user.uid | squote }}
+            value: {{ .Values.global.user.uid | squote }}
           - name: PGID
-            value: {{ .Values.transmission.user.gid | squote }}
+            value: {{ .Values.global.user.gid | squote }}
           {{- if .Values.transmission.persistence.downloads.enabled }}
           - name: TRANSMISSION_DOWNLOAD_DIR
             value: '/downloads'
@@ -83,9 +83,6 @@ spec:
           {{- if .Values.transmission.persistence.config.enabled }}
           - name: transmission-data
             mountPath: /config
-          {{- end }}
-          {{- with .Values.transmission.extraVolumeMounts }}
-          {{- . | toYaml | nindent 10 }}
           {{- end }}
           {{- if .Values.transmission.persistence.downloads.enabled }}
           - name: transmission-downloads

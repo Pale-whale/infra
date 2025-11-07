@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Statefulset
+metadata:
+  name: {{ include "prowlarr.fullname" . }}
+  labels:
+    {{- include "prowlarr.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "prowlarr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.prowlarr.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "prowlarr.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.prowlarr.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "prowlarr.serviceAccountName" . }}
+      securityContext: {{- toYaml .Values.prowlarr.podSecurityContext | nindent 8 }}
+      containers:
+        - name: prowlarr
+          securityContext:
+            {{- toYaml .Values.prowlarr.securityContext | nindent 12 }}
+          image: "{{ .Values.prowlarr.image.repository }}:{{ .Values.prowlarr.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.prowlarr.image.pullPolicy }}
+          env:
+          - name: TZ
+            value: {{ .Values.global.timezone | squote }}
+          - name: PUID
+            value: {{ .Values.global.user.uid | squote }}
+          - name: PGID
+            value: {{ .Values.global.user.gid | squote }}
+          {{- with .Values.prowlarr.extraEnv }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.prowlarr.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.prowlarr.resources | nindent 12 }}
+          volumeMounts:
+          {{- if .Values.prowlarr.persistence.config.enabled }}
+          - name: transmission-data
+            mountPath: /config
+          {{- end }}
+          {{- with .Values.prowlarr.extraVolumeMounts }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+      volumes:
+      - name: prowlarr-config
+        persistentVolumeClaim:
+          claimName: {{ include "prowlarr.fullname" . | printf "config-%s" }}
+      {{- end }}
+      {{- with .Values.prowlarr.extraVolumes }}
+      {{- . | toYaml | nindent 6 }}
+      {{- end }}
+      {{- with .Values.prowlarr.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.prowlarr.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.prowlarr.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    {{- if .Values.prowlarr.persistence.enabled }}
+    - metadata:
+        name: {{ include "prowlarr.fullname" . | printf "config-%s" }}
+      spec:
+        storageClassName: {{ .Values.prowlarr.persistence.storageClassName }}
+        accessModes: {{- .Values.prowlarr.persistence.accessModes | toYaml | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.prowlarr.persistence.size }}
+    {{- end }}

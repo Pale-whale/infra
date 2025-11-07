@@ -10,6 +10,22 @@ app:
     namespace: media
   helm:
     values: |
+      global:
+        ingress:
+          enabled: true
+          annotations:
+            traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
+            traefik.ingress.kubernetes.io/router.tls: 'true'
+          backends:
+            transmission:
+              enabled: true
+              host: transmission.palewhale.fr
+            prowlarr:
+              enabled: true
+              host: prowlarr.palewhale.fr
+      mediaPVC:
+        storageClassName: ceph-filesystem
+        size: 2000Gi
       transmission:
         image:
           tag: 5.3.1
@@ -30,8 +46,8 @@ app:
                 kind: ClusterSecretStore
                 name: infisical
               secret:
-                userKey: transmission-vpn/username
-                passKey: transmission-vpn/password
+                userKey: /transmission-vpn/username
+                passKey: /transmission-vpn/password
         rpc:
           enabled: true
           auth_required: true
@@ -41,8 +57,8 @@ app:
                 kind: ClusterSecretStore
                 name: infisical
               secret:
-                userKey: transmission-rpc/username
-                passKey: transmission-rpc/password
+                userKey: /transmission-rpc/username
+                passKey: /transmission-rpc/password
 
         persistence:
           config:
@@ -56,13 +72,3 @@ app:
               - ReadWriteMany
             size: 1500Gi
 
-        ingress:
-          enabled: true
-          annotations:
-            traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
-            traefik.ingress.kubernetes.io/router.tls: 'true'
-          hosts:
-          - host: transmission.palewhale.fr
-            paths:
-            - path: /
-              pathType: ImplementationSpecific

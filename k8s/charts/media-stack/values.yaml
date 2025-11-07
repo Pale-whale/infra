@@ -1,3 +1,31 @@
+global:
+  timezone: 'Europe/Paris'
+  user:
+    uid: 1000
+    gid: 1000
+  
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    domain: chart-example.local
+    backends:
+      transmission:
+        enabled: false
+      prowlarr:
+        enabled: false
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+mediaPVC:
+  name: media
+  accessModes: RWX
+  size: 2000Gi
+  
 transmission:
   image:
     repository: haugene/transmission-openvpn
@@ -5,8 +33,6 @@ transmission:
     tag: ""
   
   imagePullSecrets: []
-  nameOverride: ""
-  fullnameOverride: ""
   
   provider:
     name: custom
@@ -73,33 +99,18 @@ transmission:
         - ReadWriteOnce
       size: 100Gi
   
-  user:
-    uid: 1000
-    gid: 1000
-  
   extraEnv: {}
-    # - name: TRANSMISSION_DOWNLOAD_DIR
-    #   value: "/downloads/transmission"
   
   extraVolumes: {}
   extraVolumeMounts: {}
   
-  timezone: 'Europe/Paris'
-  
   serviceAccount:
-    # Specifies whether a service account should be created
     create: true
-    # Annotations to add to the service account
     annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
     name: ""
   
   podAnnotations: {}
-  
   podSecurityContext: {}
-    # fsGroup: 2000
-  
   securityContext:
     capabilities:
       add:
@@ -115,36 +126,40 @@ transmission:
     type: ClusterIP
     port: 9091
   
-  ingress:
-    enabled: false
-    className: ""
-    annotations: {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-    hosts:
-      - host: chart-example.local
-        paths:
-          - path: /
-            pathType: ImplementationSpecific
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
-  
   resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
-  
   nodeSelector: {}
-  
   tolerations: []
-  
   affinity: {}
+
+prowlarr:
+  image:
+    repository: lscr.io/linuxserver/prowlarr
+    tag: 2.1.5
+  imagePullSecrets: []
+
+  persistence:
+    enabled: false
+    accessModes: RWO
+    size: 128Mi
+
+  service:
+    type: ClusterIP
+    port: 9696
+  
+  extraEnv: {}
+  extraVolumes: {}
+  extraVolumeMounts: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  
