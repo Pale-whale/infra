@@ -18,6 +18,13 @@ app:
         rbac:
           policy.csv: |
             g, ArgoCDAdmins, role:admin
+        cm:
+          oidc.config: |
+            name: Keycloak
+            issuer: https://keycloak.palewhale.fr/realms/master
+            clientID: argocd
+            clientSecret: $oidc.keycloak.clientSecret
+            requestedScopes: ["openid", "profile", "email", "groups"]
       server:
         ingress:
           enabled: true
