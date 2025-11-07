@@ -173,7 +173,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: keycloak-operator
-    namespace: keycloak
+    namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -278,7 +278,7 @@ subjects:
     name: keycloak-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keycloak-operator
@@ -291,9 +291,10 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: keycloak-operator
+    namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keycloak-operator
@@ -306,9 +307,10 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: keycloak-operator
+    namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: keycloak-operator
@@ -321,3 +323,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: keycloak-operator
+    namespace: {{ .Release.Namespace }}
