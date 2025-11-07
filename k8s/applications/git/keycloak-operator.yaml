@@ -7,6 +7,6 @@ app:
     path: k8s/charts/keycloak-operator
   destination:
     server: https://kubernetes.default.svc
-    namespace: keycloak-operator
+    namespace: keycloak
   helm:
     values: ''
