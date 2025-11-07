@@ -1,0 +1,65 @@
+app:
+  name: traefik
+  project: infra
+  source:
+    repoURL: git@github.com:traefik/traefik-helm-chart.git
+    targetRevision: v37.2.0
+    path: traefik
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  helm:
+    values: |
+      global:
+        checkNewVersion: true
+        sendAnonymousUsage: false
+      providers:
+        kubernetesIngress:
+          publishedService:
+            enabled: false
+      service:
+        spec:
+          externalTrafficPolicy: Local
+          loadBalancerIP: 172.17.69.0
+      ingressRoute:
+        dashboard:
+          enabled: true
+      ports:
+        websecure:
+          asDefault: true
+          tls:
+            certResolver: letsencrypt
+            domains:
+              - name: palewhale.fr
+      certificatesResolvers:
+        letsencrypt:
+          acme:
+            email: pierre@peloille.com
+            caServer: https://acme-v02.api.letsencrypt.org/directory
+            dnsChallenge:
+              provider: cloudflare
+            storage: /data/acme.json
+      env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CF_DNS_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare-api-key
+              key: apiKey
+      persistence:
+        enabled: true
+        name: data
+      #  existingClaim: ""
+        accessMode: ReadWriteOnce
+        size: 128Mi
+        storageClass: "ceph-block"
+        path: /data
+        annotations: {}
+        # subPath: "" # only mount a subpath of the Volume into the pod
