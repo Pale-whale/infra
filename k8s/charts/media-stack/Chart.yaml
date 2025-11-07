@@ -1,0 +1,7 @@
+apiVersion: v2
+name: media-stack
+description: deploy a media stack
+
+type: application
+
+version: 0.0.1
