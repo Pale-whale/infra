@@ -1,0 +1,11 @@
+eso_account:
+  name: ''
+  namespace: ''
+
+identityId:
+  name: ''
+  key: ''
+
+projectSlug: ''
+secretPath: '/'
+hostAPI: ''

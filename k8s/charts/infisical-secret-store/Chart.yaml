@@ -1,0 +1,7 @@
+apiVersion: v2
+name: infisical-secret-store
+description: used to connect eso to infisical
+
+type: application
+
+version: 0.0.1
