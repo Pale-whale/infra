@@ -2,7 +2,7 @@
 Expand the name of the chart.
 */}}
 {{- define "transmission-openvpn.name" -}}
-{{- default .Chart.Name .Values.transmission.nameOverride | printf "transmission-%s" | trunc 63 | trimSuffix "-" }}
+{{- print "transmission" }}
 {{- end }}
 
 {{/*
@@ -11,16 +11,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 If release name contains chart name it will be used as a full name.
 */}}
 {{- define "transmission-openvpn.fullname" -}}
-{{- if .Values.transmission.fullnameOverride }}
-{{- .Values.transmission.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.transmission.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | printf "transmission-%s" | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "transmission-%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
+{{ print "transmission" }}
 {{- end }}
 
 {{/*
