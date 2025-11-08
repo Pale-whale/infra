@@ -55,6 +55,10 @@ spec:
           resources:
             {{- toYaml .Values.prowlarr.resources | nindent 12 }}
           volumeMounts:
+          {{- if .Values.prowlarr.persistence.enabled }}
+          - name: {{ include "prowlarr.fullname" . | printf "config-%s" }}
+            mountPath: /config
+          {{- end }}
           {{- with .Values.prowlarr.extraVolumeMounts }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}

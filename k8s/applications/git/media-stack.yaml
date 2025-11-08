@@ -64,17 +64,18 @@ app:
         persistence:
           config:
             enabled: true
-            storageClassName: block
+            storageClassName: ceph-block
             size: 500Mi
           downloads:
             enabled: true
-            storageClassName: filesystem
+            storageClassName: ceph-filesystem
             accessModes:
               - ReadWriteMany
             size: 1500Gi
       prowlarr:
         persistence:
           enabled: true
+          storageClassName: ceph-block
           accessModes:
             - ReadWriteOnce
 

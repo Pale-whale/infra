@@ -80,6 +80,14 @@ spec:
           - name: editable-custom-ovpn
             mountPath: "/etc/openvpn/custom/"
           {{- end }}
+          {{- if .Values.transmission.persistence.config.enabled }}
+          - name: transmission-data
+            mountPath: /config
+          {{- end }}
+          {{- if .Values.transmission.persistence.downloads.enabled }}
+          - name: transmission-downloads
+            mountPath: /downloads
+          {{- end }}
           {{- with .Values.transmission.extraVolumeMounts }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
