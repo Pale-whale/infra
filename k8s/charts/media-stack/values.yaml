@@ -4,6 +4,8 @@ global:
     uid: 1000
     gid: 1000
   
+  nameservers:
+    - 1.1.1.1
   ingress:
     enabled: false
     className: ""

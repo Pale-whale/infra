@@ -24,6 +24,9 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "prowlarr.serviceAccountName" . }}
       securityContext: {{- toYaml .Values.prowlarr.podSecurityContext | nindent 8 }}
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers: {{- .Values.global.nameservers | toYaml | nindent 10 }}
       containers:
         - name: prowlarr
           securityContext:
