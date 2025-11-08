@@ -71,4 +71,10 @@ app:
             accessModes:
               - ReadWriteMany
             size: 1500Gi
+      prowlarr:
+        persistence:
+          enabled: true
+          accessModes:
+            - ReadWriteOnce
+
 
