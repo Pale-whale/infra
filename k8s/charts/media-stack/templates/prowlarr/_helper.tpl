@@ -25,9 +25,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{- define "prowlarr.serviceAccountName" -}}
-{{- if .Values.transmission.serviceAccount.create }}
-{{- default (include "prowlarr.fullname" .) .Values.transmission.serviceAccount.name }}
+{{- if .Values.prowlarr.serviceAccount.create }}
+{{- default (include "prowlarr.fullname" .) .Values.prowlarr.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.transmission.serviceAccount.name }}
+{{- default "default" .Values.prowlarr.serviceAccount.name }}
 {{- end }}
 {{- end }}

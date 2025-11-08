@@ -24,60 +24,16 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- if .Values.global.backends.transmission.enabled }}
-    - host: {{ .Values.global.backends.transmission.host | default .Values.global.ingress.domain }}
+    {{- $key, $value := range .Values.global.ingress.backends }}
+    {{- if not $value.differentIngress | and $value.enabled }}
+    - host: {{ $value.host | default .Values.global.ingress.domain }}
       http:
         paths:
           - pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ include "transmission.fullname" . }}
+                name: {{ include (printf "%s.fullname" $key) . }}
                 port:
                   name: http
     {{- end }}
-    {{- if .Values.global.backends.prowlarr.enabled }}
-    - host: {{ .Values.global.backends.prowlarr.host | default .Values.global.ingress.domain }}
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            backend:
-              service:
-                name: {{ include "prowlarr.fullname" . }}
-                port:
-                  name: http
     {{- end }}
-{{- else if .Values.global.ingressRoute.enabled }}
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-  {{- range $key, $value := .Values.global.backends }}
-  - kind: Rule
-    match: {{ $value.host | default $.Values.global.domain | printf "Host(`%s`)" }}
-    middlewares:
-    {{- range (concat $.Values.global.middlewares ($value.middlewares | default list)) }}
-    - name: {{ .name }}
-      namespace: {{ .namespace }}
-    {{- end }}
-    services:
-    - kind: Service
-      name: {{ include (printf "%s.fullname" $key) . }}
-      namespace: {{ $.Release.Namespace }}
-      passHostHeader: true
-      port: http
-      scheme: http
-  {{- end }}
-  {{- if .Values.global.ingressRoute.tls.enabled }}
-  tls:
-    certResolver: {{ .Values.global.ingressRoute.tls.certResolver }}
-    domains:
-    {{- range $key, $value := .Values.global.backends }}
-    - main: {{ $value.host }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-
