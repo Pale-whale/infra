@@ -33,7 +33,7 @@ spec:
               service:
                 name: {{ include "prowlarr.fullname" . }}
                 port:
-                  number: {{ .Values.transmission.service.port }}
+                  name: http
     {{- end }}
     {{- if .Values.global.ingress.backends.prowlarr.enabled }}
     - host: {{ .Values.global.ingress.backends.prowlarr.host | default .Values.global.ingress.domain }}
@@ -44,6 +44,6 @@ spec:
               service:
                 name: {{ include "transmission-openvpn.fullname" . }}
                 port:
-                  number: {{ .Values.prowlarr.service.port }}
+                  name: http
     {{- end }}
 {{- end }}
