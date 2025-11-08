@@ -16,6 +16,7 @@ app:
           annotations:
             traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
             traefik.ingress.kubernetes.io/router.tls: 'true'
+          className: traefik
           backends:
             transmission:
               enabled: true
