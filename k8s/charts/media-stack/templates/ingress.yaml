@@ -76,7 +76,7 @@ spec:
     certResolver: {{ .Values.global.ingressRoute.tls.certResolver }}
     domains:
     {{- range $key, $value := .Values.global.backends }}
-    - main: $value.host
+    - main: {{ $value.host }}
     {{- end }}
   {{- end }}
 {{- end }}
