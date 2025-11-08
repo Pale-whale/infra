@@ -24,9 +24,9 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- $key, $value := range .Values.global.ingress.backends }}
+    {{- range $key, $value := .Values.global.ingress.backends }}
     {{- if not $value.differentIngress | and $value.enabled }}
-    - host: {{ $value.host | default .Values.global.ingress.domain }}
+    - host: {{ $value.host | default $.Values.global.ingress.domain }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -37,3 +37,4 @@ spec:
                   name: http
     {{- end }}
     {{- end }}
+{{- end }}
