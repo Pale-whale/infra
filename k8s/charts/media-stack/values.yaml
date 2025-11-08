@@ -6,22 +6,27 @@ global:
   
   nameservers:
     - 1.1.1.1
+  domain: chart-example.local
+  backends:
+    transmission:
+      enabled: false
+    prowlarr:
+      enabled: false
+  middlewares: []
   ingress:
     enabled: false
     className: ""
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
-    domain: chart-example.local
-    backends:
-      transmission:
-        enabled: false
-      prowlarr:
-        enabled: false
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - chart-example.local
+  ingressRoute:
+    enabled: false
+    tls:
+      enabled: false
 
 mediaPVC:
   name: media

@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "transmission-openvpn.fullname" . }}
+  name: {{ include "transmission.fullname" . }}
   labels:
-    {{- include "transmission-openvpn.labels" . | nindent 4 }}
+    {{- include "transmission.labels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "transmission-openvpn.selectorLabels" . | nindent 6 }}
+      {{- include "transmission.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.transmission.podAnnotations }}
@@ -16,13 +16,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "transmission-openvpn.selectorLabels" . | nindent 8 }}
+        {{- include "transmission.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.transmission.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "transmission-openvpn.serviceAccountName" . }}
+      serviceAccountName: {{ include "transmission.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.transmission.podSecurityContext | nindent 8 }}
       {{- if eq .Values.transmission.provider.name "custom" }}
@@ -42,8 +42,8 @@ spec:
             {{- toYaml .Values.transmission.securityContext | nindent 12 }}
           image: "{{ .Values.transmission.image.repository }}:{{ .Values.transmission.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.transmission.image.pullPolicy }}
-          env: {{- include "transmission-openvpn.provider-config" $ | nindent 10 -}}
-          {{- include "transmission-openvpn.rpc-config" $ | nindent 10 }}
+          env: {{- include "transmission.provider-config" $ | nindent 10 -}}
+          {{- include "transmission.rpc-config" $ | nindent 10 }}
           - name: TZ
             value: {{ .Values.global.timezone | squote }}
           - name: PUID
@@ -81,11 +81,11 @@ spec:
             mountPath: "/etc/openvpn/custom/"
           {{- end }}
           {{- if .Values.transmission.persistence.config.enabled }}
-          - name: {{ include "transmission-openvpn.fullname" . | printf "config-%s" }}
+          - name: {{ include "transmission.fullname" . | printf "config-%s" }}
             mountPath: /config
           {{- end }}
           {{- if .Values.transmission.persistence.downloads.enabled }}
-          - name: {{ include "transmission-openvpn.fullname" . | printf "downloads-%s" }}
+          - name: {{ include "transmission.fullname" . | printf "downloads-%s" }}
             mountPath: /downloads
           {{- end }}
           {{- with .Values.transmission.extraVolumeMounts }}
@@ -120,7 +120,7 @@ spec:
   volumeClaimTemplates:
     {{- if .Values.transmission.persistence.config.enabled }}
     - metadata:
-        name: {{ include "transmission-openvpn.fullname" . | printf "config-%s" }}
+        name: {{ include "transmission.fullname" . | printf "config-%s" }}
       spec:
         storageClassName: {{ .Values.transmission.persistence.config.storageClassName }}
         accessModes: {{- .Values.transmission.persistence.config.accessModes | toYaml | nindent 8 }}
@@ -130,7 +130,7 @@ spec:
     {{- end }}
     {{- if .Values.transmission.persistence.downloads.enabled }}
     - metadata:
-        name: {{ include "transmission-openvpn.fullname" . | printf "downloads-%s" }}
+        name: {{ include "transmission.fullname" . | printf "downloads-%s" }}
       spec:
         storageClassName: {{ .Values.transmission.persistence.downloads.storageClassName }}
         accessModes: {{- .Values.transmission.persistence.downloads.accessModes | toYaml | nindent 8 }}

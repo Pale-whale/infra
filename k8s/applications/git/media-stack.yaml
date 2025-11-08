@@ -11,19 +11,26 @@ app:
   helm:
     values: |
       global:
-        ingress:
+        backends:
+          transmission:
+            enabled: true
+            host: transmission.palewhale.fr
+            middlewares:
+              - name: traefik-forward-auth
+                namespace: traefik
+          prowlarr:
+            enabled: true
+            host: prowlarr.palewhale.fr
+            middlewares:
+              - name: traefik-forward-auth
+                namespace: traefik
+        ingressRoute:
           enabled: true
-          annotations:
-            traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
-            traefik.ingress.kubernetes.io/router.tls: 'true'
-          className: traefik
-          backends:
-            transmission:
-              enabled: true
-              host: transmission.palewhale.fr
-            prowlarr:
-              enabled: true
-              host: prowlarr.palewhale.fr
+          tls:
+            enabled: true
+            certResolver: letsencrypt
+        ingress:
+          enabled: false
       mediaPVC:
         storageClassName: ceph-filesystem
         size: 2000Gi

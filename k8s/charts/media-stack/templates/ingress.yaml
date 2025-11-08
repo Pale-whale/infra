@@ -4,7 +4,7 @@ kind: Ingress
 metadata:
   name: media
   labels:
-    {{- include "transmission-openvpn.labels" . | nindent 4 }}
+    {{- include "transmission.labels" . | nindent 4 }}
   {{- with .Values.global.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -24,8 +24,19 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- if .Values.global.ingress.backends.transmission.enabled }}
-    - host: {{ .Values.global.ingress.backends.transmission.host | default .Values.global.ingress.domain }}
+    {{- if .Values.global.backends.transmission.enabled }}
+    - host: {{ .Values.global.backends.transmission.host | default .Values.global.ingress.domain }}
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "transmission.fullname" . }}
+                port:
+                  name: http
+    {{- end }}
+    {{- if .Values.global.backends.prowlarr.enabled }}
+    - host: {{ .Values.global.backends.prowlarr.host | default .Values.global.ingress.domain }}
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -35,15 +46,38 @@ spec:
                 port:
                   name: http
     {{- end }}
-    {{- if .Values.global.ingress.backends.prowlarr.enabled }}
-    - host: {{ .Values.global.ingress.backends.prowlarr.host | default .Values.global.ingress.domain }}
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            backend:
-              service:
-                name: {{ include "transmission-openvpn.fullname" . }}
-                port:
-                  name: http
+{{- else if .Values.global.ingressRoute.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  {{- range $key, $value := .Values.global.backends }}
+  - kind: Rule
+    match: {{ $value.host | default $.Values.global.domain | printf "Host(`%s`)" }}
+    middlewares:
+    {{- range (concat $.Values.global.middlewares ($value.middlewares | default list)) }}
+    - name: {{ .name }}
+      namespace: {{ .namespace }}
     {{- end }}
+    services:
+    - kind: Service
+      name: {{ include (printf "%s.fullname" $key) . }}
+      namespace: {{ $.Release.Namespace }}
+      passHostHeader: true
+      port: http
+      scheme: http
+  {{- end }}
+  {{- if .Values.global.ingressRoute.tls.enabled }}
+  tls:
+    certResolver: {{ .Values.global.ingressRoute.tls.certResolver }}
+    domains:
+    {{- range $key, $value := .Values.global.backends }}
+    - main: $value.host
+    {{- end }}
+  {{- end }}
 {{- end }}
+

@@ -1,4 +1,4 @@
-{{- define "transmission-openvpn.provider-config" -}}
+{{- define "transmission.provider-config" -}}
 - name: OPENVPN_PROVIDER
   value: {{ $.Values.transmission.provider.name | squote }}
 {{- if $.Values.transmission.provider.user.extraSecret }}
@@ -16,12 +16,12 @@
 - name: OPENVPN_USERNAME
   valueFrom:
     secretKeyRef:
-      name: {{ include "transmission-openvpn.fullname" . | printf "vpn-credentials-%s" }}
+      name: {{ include "transmission.fullname" . | printf "vpn-credentials-%s" }}
       key: user
 - name: OPENVPN_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ include "transmission-openvpn.fullname" . | printf "vpn-credentials-%s" }}
+      name: {{ include "transmission.fullname" . | printf "vpn-credentials-%s" }}
       key: password
 {{- else }}
 - name: OPENVPN_USERNAME
@@ -55,7 +55,7 @@
 {{- end }}
 {{- end }}
 
-{{- define "transmission-openvpn.firewall-config" }}
+{{- define "transmission.firewall-config" }}
 - name: ENABLE_UFW
   value: {{ $.Values.transmission.firewall.enable  | squote}}
 - name: UFW_ALLOW_GW_NET
@@ -66,7 +66,7 @@
   values {{ $.Values.transmission.firewall.disableReject | squote }}
 {{- end -}}
 
-{{- define "transmission-openvpn.rpc-config" -}}
+{{- define "transmission.rpc-config" -}}
 - name: TRANSMISSION_RPC_ENABLED
   value: {{ $.Values.transmission.rpc.enabled | squote }}
 - name: TRANSMISSION_RPC_AUTH_REQUIRED
@@ -90,12 +90,12 @@
 - name: TRANSMISSION_RPC_USERNAME
   valueFrom:
     secretKeyRef:
-      name: {{ include "transmission-openvpn.fullname" . | printf "rpc-credentials-%s" }}
+      name: {{ include "transmission.fullname" . | printf "rpc-credentials-%s" }}
       key: user
 - name: TRANSMISSION_RPC_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ include "transmission-openvpn.fullname" . | printf "rpc-credentials-%s" }}
+      name: {{ include "transmission.fullname" . | printf "rpc-credentials-%s" }}
       key: password
 {{- else }}
 - name: TRANSMISSION_RPC_USERNAME
