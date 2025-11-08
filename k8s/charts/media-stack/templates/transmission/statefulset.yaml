@@ -81,11 +81,11 @@ spec:
             mountPath: "/etc/openvpn/custom/"
           {{- end }}
           {{- if .Values.transmission.persistence.config.enabled }}
-          - name: transmission-data
+          - name: {{ include "transmission-openvpn.fullname" . | printf "config-%s" }}
             mountPath: /config
           {{- end }}
           {{- if .Values.transmission.persistence.downloads.enabled }}
-          - name: transmission-downloads
+          - name: {{ include "transmission-openvpn.fullname" . | printf "downloads-%s" }}
             mountPath: /downloads
           {{- end }}
           {{- with .Values.transmission.extraVolumeMounts }}
