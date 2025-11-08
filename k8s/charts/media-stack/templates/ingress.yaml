@@ -27,23 +27,23 @@ spec:
     {{- if .Values.global.ingress.backends.transmission.enabled }}
     - host: {{ .Values.global.ingress.backends.transmission.host | default .Values.global.ingress.domain }}
       http:
-        paths: /
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: http
-            port:
-              number: {{ .Values.transmission.service.port }}
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: http
+                port:
+                  number: {{ .Values.transmission.service.port }}
     {{- end }}
     {{- if .Values.global.ingress.backends.prowlarr.enabled }}
     - host: {{ .Values.global.ingress.backends.prowlarr.host | default .Values.global.ingress.domain }}
       http:
-        paths: /
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: http
-            port:
-              number: {{ .Values.prowlarr.service.port }}
+        paths:
+          - pathType: ImplementationSpecific
+            backend:
+              service:
+                name: http
+                port:
+                  number: {{ .Values.prowlarr.service.port }}
     {{- end }}
 {{- end }}
