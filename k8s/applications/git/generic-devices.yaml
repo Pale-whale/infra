@@ -1,0 +1,18 @@
+app:
+  name: generic-devices
+  project: infra
+  source:
+    repoURL: git@github.com:pale-whale/infra.git
+    targetRevision: HEAD
+    path: k8s/charts/generic-device-plugin
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  helm:
+    values: |
+      devices:
+        - name: tun
+          groups:
+            - count: 1000
+              paths:
+                - path: /dev/net/tun

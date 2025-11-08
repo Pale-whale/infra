@@ -36,6 +36,13 @@ app:
         extraEnv:
         - name: TRANSMISSION_INCOMPLETE_DIR
           value: '/downloads/incomplete'
+        resources:
+          requests:
+            cpu: 200m
+            memory: 500Mi
+          limits:
+            memory: 1Gi
+            squat.ai/tun: "1"
         provider:
           name: PIA
           localNetwork: '10.0.0.0/8,172.16.0.0/16'

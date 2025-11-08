@@ -1,0 +1,7 @@
+apiVersion: v2
+name: generic-device-plugin
+description: deploy squat's generic-device-plugin
+
+type: application
+
+version: 0.0.1
