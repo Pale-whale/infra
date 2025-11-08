@@ -31,7 +31,7 @@ spec:
           - pathType: ImplementationSpecific
             backend:
               service:
-                name: http
+                name: {{ include "prowlarr.fullname" . }}
                 port:
                   number: {{ .Values.transmission.service.port }}
     {{- end }}
@@ -42,7 +42,7 @@ spec:
           - pathType: ImplementationSpecific
             backend:
               service:
-                name: http
+                name: {{ include "transmission-openvpn.fullname" . }}
                 port:
                   number: {{ .Values.prowlarr.service.port }}
     {{- end }}
