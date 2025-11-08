@@ -6,7 +6,7 @@ spec:
   {{- with .Values.mediaPVC.storageClassName }}
   storageClassName: {{ . }}
   {{- end }}
-  accessModes: {{- .Values.mediaPVC.accessModes | toYaml | nindent 2 }}
+  accessModes: {{ .Values.mediaPVC.accessModes | toYaml | nindent 2 }}
   resources:
     requests:
       storage: {{ .Values.mediaPVC.size }}

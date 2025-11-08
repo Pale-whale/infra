@@ -23,7 +23,8 @@ global:
 
 mediaPVC:
   name: media
-  accessModes: RWX
+  accessModes:
+    - ReadWriteMany
   size: 2000Gi
   
 transmission:

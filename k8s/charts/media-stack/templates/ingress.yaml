@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: media
   labels:
     {{- include "transmission-openvpn.labels" . | nindent 4 }}
   {{- with .Values.global.ingress.annotations }}
