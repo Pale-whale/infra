@@ -1,0 +1,32 @@
+app:
+  name: traefik-forward-auth
+  project: infra
+  source:
+    repoURL: git@github.com:k8s-at-home/charts.git
+    targetRevision: traefik-forward-auth-2.2.2
+    path: charts/stable/traefik-forward-auth
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  helm:
+    values: |
+      env:
+        TZ: CEST
+        COOKIE_DOMAIN: palewhale.fr
+        URL_PATH: /_oauth
+        DEFAULT_ACTION: auth
+        DEFAULT_PROVIDER: oidc
+        PROVIDERS_OIDC_ISSUER_URL: 'https://keycloak.palewhale.fr/realms/homelab'
+        PROVIDERS_OIDC_CLIENT_ID:
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc
+              key: client-id
+        PROVIDERS_OIDC_CLIENT_SECRET:
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc
+              key: client-secret
+      common:
+        nodeSelector:
+          kubernetes.io/arch: amd64
