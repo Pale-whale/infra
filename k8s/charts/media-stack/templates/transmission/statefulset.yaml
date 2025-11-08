@@ -80,14 +80,6 @@ spec:
           - name: editable-custom-ovpn
             mountPath: "/etc/openvpn/custom/"
           {{- end }}
-          {{- if .Values.transmission.persistence.config.enabled }}
-          - name: transmission-data
-            mountPath: /config
-          {{- end }}
-          {{- if .Values.transmission.persistence.downloads.enabled }}
-          - name: transmission-downloads
-            mountPath: /downloads
-          {{- end }}
           {{- with .Values.transmission.extraVolumeMounts }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
@@ -101,16 +93,6 @@ spec:
           secretName: custom-ovpn
       - name: editable-custom-ovpn
         emptyDir: {}
-      {{- end }}
-      {{- if .Values.transmission.persistence.config.enabled }}
-      - name: transmission-data
-        persistentVolumeClaim:
-          claimName: {{ include "transmission-openvpn.fullname" . | printf "config-%s" }}
-      {{- end }}
-      {{- if .Values.transmission.persistence.downloads.enabled }}
-      - name: transmission-downloads
-        persistentVolumeClaim:
-          claimName: {{ include "transmission-openvpn.fullname" . | printf "downloads-%s" }}
       {{- end }}
       {{- with .Values.transmission.extraVolumes }}
       {{- . | toYaml | nindent 6 }}
