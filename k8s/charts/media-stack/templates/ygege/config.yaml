@@ -4,7 +4,7 @@ kind: ExternalSecret
 metadata:
   name: {{ include "ygege.fullname" . | printf "config-%s" }}
 spec:
-  # ...
+  secretStoreRef: {{- .Values.ygege.account.secretStoreRef | toYaml | nindent 4 }}
   target:
     name: {{ include "ygege.fullname" . | printf "config-%s" }}
     template:

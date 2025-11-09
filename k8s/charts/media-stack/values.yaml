@@ -245,6 +245,9 @@ ygege:
   imagePullSecrets: []
 
   account:
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: infisical
     userPath: /ygg/user
     passwordPath: /ygg/password
   
