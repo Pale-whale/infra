@@ -51,9 +51,9 @@ app:
             hostPath:
               path: "/dev/dri"
               type: Directory
-          extraVolumeMounts:
-          - name: dev-dri
-            mountPath: "/dev/dri"
+        extraVolumeMounts:
+        - name: dev-dri
+          mountPath: "/dev/dri"
       jellyseer:
         ingress:
           enabled: true
