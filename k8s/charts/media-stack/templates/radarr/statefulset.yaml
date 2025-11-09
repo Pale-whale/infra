@@ -49,18 +49,18 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: /ping
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /ping
               port: http
           resources:
             {{- toYaml .Values.radarr.resources | nindent 12 }}
           volumeMounts:
           - name: medias
-            mountPath: /tv
-            subPath: {{ .Values.mediaPVC.paths.tv }}
+            mountPath: /movies
+            subPath: {{ .Values.mediaPVC.paths.movies }}
           - name: medias
             mountPath: /downloads
             subPath: {{ .Values.mediaPVC.paths.downloads }}
