@@ -1,4 +1,4 @@
-{{- if .Values.ygege.enable }}
+{{- if .Values.ygege.enabled }}
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:

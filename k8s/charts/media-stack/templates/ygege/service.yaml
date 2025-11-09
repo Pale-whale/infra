@@ -1,4 +1,4 @@
-{{- if .Values.ygege.enable }}
+{{- if .Values.ygege.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

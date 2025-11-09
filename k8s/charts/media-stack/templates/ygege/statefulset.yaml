@@ -1,4 +1,4 @@
-{{- if .Values.ygege.enable }}
+{{- if .Values.ygege.enabled }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
