@@ -33,10 +33,10 @@ mediaPVC:
     - ReadWriteMany
   size: 2000Gi
   paths:
-    media: /media
-    movies: /media/movies
-    tv: /media/tv
-    downloads: /downloads
+    media: media
+    movies: media/movies
+    tv: media/tv
+    downloads: downloads
 
 jellyfin:
   enabled: false
