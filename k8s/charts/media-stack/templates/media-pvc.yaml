@@ -10,3 +10,16 @@ spec:
   resources:
     requests:
       storage: {{ .Values.mediaPVC.size }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.transcodePVC.name }}
+spec:
+  {{- with .Values.transcodePVC.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  accessModes: {{ .Values.transcodePVC.accessModes | toYaml | nindent 2 }}
+  resources:
+    requests:
+      storage: {{ .Values.transcodePVC.size }}

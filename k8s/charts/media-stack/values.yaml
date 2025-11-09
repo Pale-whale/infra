@@ -28,6 +28,12 @@ global:
     #      - chart-example.local
 
 mediaPVC:
+  name: transcode
+  accessModes:
+    - ReadWriteOnce
+  size: 100Gi
+    
+mediaPVC:
   name: media
   accessModes:
     - ReadWriteMany
@@ -44,6 +50,13 @@ jellyfin:
     media:
       enabled: true
       existingClaim: media
+  volumeMounts:
+    - mountPath: /transcode
+      name: transcode
+  volumes:
+    - name: transcode
+      persistentVolumeClaim:
+            claimName: transcode
   
 transmission:
   image:

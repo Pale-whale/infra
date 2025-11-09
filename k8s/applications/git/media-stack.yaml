@@ -47,14 +47,19 @@ app:
               paths:
                 - path: /
                   pathType: ImplementationSpecific
-        extraVolumes:
+        volumes:
           - name: dev-dri
             hostPath:
               path: "/dev/dri"
               type: Directory
-        extraVolumeMounts:
+          - name: transcode
+            persistentVolumeClaim:
+                  claimName: transcode
+        volumeMounts:
         - name: dev-dri
           mountPath: "/dev/dri"
+        - mountPath: /transcode
+          name: transcode
       jellyseer:
         ingress:
           enabled: true
