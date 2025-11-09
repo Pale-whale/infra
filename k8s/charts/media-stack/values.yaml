@@ -112,7 +112,7 @@ transmission:
         - ReadWriteOnce
       size: 10Mi
   
-  extraEnv: {}
+  extraEnv: []
   
   extraVolumes: {}
   extraVolumeMounts: {}
