@@ -1,0 +1,40 @@
+app:
+  name: home-assistant
+  project: default
+  source:
+    repoURL: git@github.com:pajikos/home-assistant-helm-chart.git
+    targetRevision: main
+    path: charts/home-assistant
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: home-assistant
+  helm:
+    values: |
+      configuration:
+        enabled: true
+      ingress:
+        enabled: true
+        annotations:
+          traefik.ingress.kubernetes.io/router.tls: 'true'
+        hosts:
+          - host: home.palewhale.fr
+            paths:
+              - path: /
+                pathType: ImplementationSpecific
+      nodeSelector:
+        node-role.kubernetes.io/zigbee: ""
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: ceph-block
+      securityContext:
+        privileged: true
+      additionalVolumes:
+        - hostPath:
+            path: >-
+              /dev/serial/by-id/usb-SONOFF_SONOFF_Dongle_Max_MG24_ce3d0244efc2ef11a6ddedb08048b910-if00-port0
+            type: CharDevice
+          name: usb
+      additionalMounts:
+        - mountPath: /dev/ttyACM0
+          name: usb
