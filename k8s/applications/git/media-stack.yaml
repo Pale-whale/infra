@@ -33,6 +33,9 @@ app:
       mediaPVC:
         storageClassName: ceph-filesystem
         size: 2000Gi
+      transcodePVC:
+        storageClassName: ceph-block
+        size: 100Gi
       jellyfin:
         enabled: true
         securityContext:
