@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "sonarr.fullname" . }}
+  labels:
+    {{- include "sonarr.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sonarr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.sonarr.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "sonarr.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.sonarr.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sonarr.serviceAccountName" . }}
+      securityContext: {{- toYaml .Values.sonarr.podSecurityContext | nindent 8 }}
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers: {{- .Values.global.nameservers | toYaml | nindent 10 }}
+      containers:
+        - name: sonarr
+          securityContext:
+            {{- toYaml .Values.sonarr.securityContext | nindent 12 }}
+          image: "{{ .Values.sonarr.image.repository }}:{{ .Values.sonarr.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.sonarr.image.pullPolicy }}
+          env:
+          - name: TZ
+            value: {{ .Values.global.timezone | squote }}
+          - name: PUID
+            value: {{ .Values.global.user.uid | squote }}
+          - name: PGID
+            value: {{ .Values.global.user.gid | squote }}
+          {{- with .Values.sonarr.extraEnv }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.sonarr.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.sonarr.resources | nindent 12 }}
+          volumeMounts:
+          - name: medias
+            mountPath: /tv
+            subPath: {{ .Values.mediaPVC.paths.tv }}
+          - name: medias
+            mountPath: /downloads
+            subPath: {{ .Values.mediaPVC.paths.downloads }}
+          {{- if .Values.sonarr.persistence.enabled }}
+          - name: {{ include "sonarr.fullname" . | printf "config-%s" }}
+            mountPath: /config
+          {{- end }}
+          {{- with .Values.sonarr.extraVolumeMounts }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+      volumes:
+        - name: medias
+          persistentVolumeClaim:
+            claimName: {{ .Values.mediaPVC.name }}
+      {{- with .Values.sonarr.extraVolumes }}
+      {{- . | toYaml | nindent 6 }}
+      {{- end }}
+      {{- with .Values.sonarr.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sonarr.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sonarr.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    {{- if .Values.sonarr.persistence.enabled }}
+    - metadata:
+        name: {{ include "sonarr.fullname" . | printf "config-%s" }}
+      spec:
+        storageClassName: {{ .Values.sonarr.persistence.storageClassName }}
+        accessModes: {{- .Values.sonarr.persistence.accessModes | toYaml | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.sonarr.persistence.size }}
+    {{- end }}

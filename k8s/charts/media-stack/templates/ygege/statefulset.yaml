@@ -1,0 +1,96 @@
+{{- if .Values.ygege.enable }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "ygege.fullname" . }}
+  labels:
+    {{- include "ygege.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ygege.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.ygege.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "ygege.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.ygege.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ygege.serviceAccountName" . }}
+      securityContext: {{- toYaml .Values.ygege.podSecurityContext | nindent 8 }}
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers: {{- .Values.global.nameservers | toYaml | nindent 10 }}
+      containers:
+        - name: ygege
+          securityContext:
+            {{- toYaml .Values.ygege.securityContext | nindent 12 }}
+          image: "{{ .Values.ygege.image.repository }}:{{ .Values.ygege.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.ygege.image.pullPolicy }}
+          {{- with .Values.ygege.extraEnv }}
+          env:
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.ygege.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.ygege.resources | nindent 12 }}
+          volumeMounts:
+          - name: config
+            mountPath: /app/config.json
+            subPath: config.json
+          {{- if .Values.ygege.persistence.enabled }}
+          - name: {{ include "ygege.fullname" . | printf "sessions-%s" }}
+            mountPath: /app/sessions 
+          {{- end }}
+          {{- with .Values.ygege.extraVolumeMounts }}
+          {{- . | toYaml | nindent 10 }}
+          {{- end }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "ygege.fullname" . | printf "config-%s" }}
+      {{- with .Values.ygege.extraVolumes }}
+      {{- . | toYaml | nindent 6 }}
+      {{- end }}
+      {{- with .Values.ygege.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ygege.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.ygege.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    {{- if .Values.ygege.persistence.enabled }}
+    - metadata:
+        name: {{ include "ygege.fullname" . | printf "sessions-%s" }}
+      spec:
+        storageClassName: {{ .Values.ygege.persistence.storageClassName }}
+        accessModes: {{- .Values.ygege.persistence.accessModes | toYaml | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.ygege.persistence.size }}
+    {{- end }}
+{{- end }}

@@ -66,6 +66,7 @@ spec:
           {{- . | toYaml | nindent 10 }}
           {{- end }}
       {{- with .Values.prowlarr.extraVolumes }}
+      volumes:
       {{- . | toYaml | nindent 6 }}
       {{- end }}
       {{- with .Values.prowlarr.nodeSelector }}

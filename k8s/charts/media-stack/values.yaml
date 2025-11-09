@@ -18,6 +18,10 @@ global:
         enabled: false
       prowlarr:
         enabled: false
+      radarr:
+        enabled: false
+      sonarr:
+        enabled: false
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
@@ -28,6 +32,18 @@ mediaPVC:
   accessModes:
     - ReadWriteMany
   size: 2000Gi
+  paths:
+    media: /media
+    movies: /media/movies
+    tv: /media/tv
+    downloads: /downloads
+
+jellyfin:
+  enabled: false
+  persistence:
+    media:
+      enabled: true
+      existingClaim: media
   
 transmission:
   image:
@@ -95,12 +111,6 @@ transmission:
       accessModes:
         - ReadWriteOnce
       size: 10Mi
-    downloads:
-      enabled: false
-      storageClassName: "local-path"
-      accessModes:
-        - ReadWriteOnce
-      size: 100Gi
   
   extraEnv: {}
   
@@ -165,4 +175,100 @@ prowlarr:
   tolerations: []
   affinity: {}
 
+sonarr:
+  image:
+    repository: lscr.io/linuxserver/sonarr 
+    tag: 4.0.16
+  imagePullSecrets: []
+
+  persistence:
+    enabled: false
+    accessModes: RWO
+    size: 128Mi
+
+  service:
+    type: ClusterIP
+    port: 8989
   
+  extraEnv: {}
+  extraVolumes: {}
+  extraVolumeMounts: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+radarr:
+  image:
+    repository: lscr.io/linuxserver/radarr
+    tag: 5.28.0
+  imagePullSecrets: []
+
+  persistence:
+    enabled: false
+    accessModes: RWO
+    size: 128Mi
+
+  service:
+    type: ClusterIP
+    port: 7878
+  
+  extraEnv: {}
+  extraVolumes: {}
+  extraVolumeMounts: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+ygege:
+  image:
+    repository: ghcr.io/uwudev/ygege 
+    tag: master
+    pullPolicy: Always
+  imagePullSecrets: []
+
+  account:
+    userPath: /ygg/user
+    passwordPath: /ygg/password
+  
+  persistence:
+    enabled: false
+    accessModes: RWO
+    size: 128Mi
+
+  service:
+    type: ClusterIP
+    port: 8715
+  
+  extraEnv: {}
+  extraVolumes: {}
+  extraVolumeMounts: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

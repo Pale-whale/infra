@@ -24,9 +24,50 @@ app:
             prowlarr:
               enabled: true
               host: prowlarr.palewhale.fr
+            radarr:
+              enabled: true
+              host: radarr.palewhale.fr
+            sonarr:
+              enabled: true
+              host: sonarr.palewhale.fr
       mediaPVC:
         storageClassName: ceph-filesystem
         size: 2000Gi
+      jellyfin:
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        ingress:
+          enabled: true
+          hosts:
+            - host: jellyfin.palewhale.fr
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+        extraVolumes:
+          - name: dev-dri
+            hostPath:
+              path: "/dev/dri"
+              type: Directory
+          extraVolumeMounts:
+          - name: dev-dri
+            mountPath: "/dev/dri"
+      jellyseer:
+        ingress:
+          enabled: true
+          hosts:
+            - host: seer.palewhale.fr
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+        config:
+          persistence:
+            storageClass: ceph-block
+            accessModes:
+              - ReadWriteOnce
+            size: 20Gi
       transmission:
         image:
           tag: 5.3.1
@@ -85,5 +126,23 @@ app:
           storageClassName: ceph-block
           accessModes:
             - ReadWriteOnce
-
+      radarr:
+        persistence:
+          enabled: true
+          storageClassName: ceph-block
+          accessModes:
+            - ReadWriteOnce
+      sonarr:
+        persistence:
+          enabled: true
+          storageClassName: ceph-block
+          accessModes:
+            - ReadWriteOnce
+      ygege:
+        enabled: true
+        persistence:
+          enabled: true
+          storageClassName: ceph-block
+          accessModes:
+            - ReadWriteOnce
 

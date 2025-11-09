@@ -5,3 +5,14 @@ description: deploy a media stack
 type: application
 
 version: 0.0.1
+
+dependencies:
+  - name: jellyfin
+    condition: jellyfin.enabled
+    version: 2.5.0
+    repository: https://jellyfin.github.io/jellyfin-helm 
+  - name: seer-chart
+    alias: jellyseer
+    condition: jellyseer.enabled
+    version: v2.7.3
+    repository: oci://ghcr.io/fallenbagel/jellyseerr

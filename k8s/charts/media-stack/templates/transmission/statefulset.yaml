@@ -76,6 +76,9 @@ spec:
           volumeMounts:
           - name: dev-tun
             mountPath: "/dev/net/tun"
+          - name: medias
+            mountPath: /downloads
+            subPath: {{ .Values.mediaPVC.paths.downloads }}
           {{- if eq .Values.transmission.provider.name "custom" }}
           - name: editable-custom-ovpn
             mountPath: "/etc/openvpn/custom/"
@@ -84,10 +87,6 @@ spec:
           - name: {{ include "transmission.fullname" . | printf "config-%s" }}
             mountPath: /config
           {{- end }}
-          {{- if .Values.transmission.persistence.downloads.enabled }}
-          - name: {{ include "transmission.fullname" . | printf "downloads-%s" }}
-            mountPath: /downloads
-          {{- end }}
           {{- with .Values.transmission.extraVolumeMounts }}
           {{- . | toYaml | nindent 10 }}
           {{- end }}
@@ -95,6 +94,9 @@ spec:
       - name: dev-tun
         hostPath:
           path: "/dev/net/tun"
+      - name: medias
+        persistentVolumeClaim:
+          claimName: {{ .Values.mediaPVC.name }}
       {{- if eq .Values.transmission.provider.name "custom" }}
       - name: custom-ovpn
         secret:
@@ -127,14 +129,4 @@ spec:
         resources:
           requests:
             storage: {{ .Values.transmission.persistence.config.size }}
-    {{- end }}
-    {{- if .Values.transmission.persistence.downloads.enabled }}
-    - metadata:
-        name: {{ include "transmission.fullname" . | printf "downloads-%s" }}
-      spec:
-        storageClassName: {{ .Values.transmission.persistence.downloads.storageClassName }}
-        accessModes: {{- .Values.transmission.persistence.downloads.accessModes | toYaml | nindent 8 }}
-        resources:
-          requests:
-            storage: {{ .Values.transmission.persistence.downloads.size }}
     {{- end }}

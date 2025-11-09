@@ -3,8 +3,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: media
-  labels:
-    {{- include "transmission.labels" . | nindent 4 }}
   {{- with .Values.global.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -25,7 +23,7 @@ spec:
   {{- end }}
   rules:
     {{- range $key, $value := .Values.global.ingress.backends }}
-    {{- if not $value.differentIngress | and $value.enabled }}
+    {{- if $value.enabled }}
     - host: {{ $value.host | default $.Values.global.ingress.domain }}
       http:
         paths:
@@ -37,4 +35,3 @@ spec:
                   name: http
     {{- end }}
     {{- end }}
-{{- end }}
