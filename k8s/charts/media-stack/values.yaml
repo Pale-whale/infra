@@ -27,7 +27,7 @@ global:
     #    hosts:
     #      - chart-example.local
 
-mediaPVC:
+transcodePVC:
   name: transcode
   accessModes:
     - ReadWriteOnce
