@@ -12,6 +12,8 @@ app:
     values: |
       ingress:
         enabled: true
+        annotations:
+          traefik.ingress.kubernetes.io/router.tls: 'true'
       phpClientHttpsFix:
         enabled: true
       postgresql:
