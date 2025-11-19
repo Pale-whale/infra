@@ -1,0 +1,77 @@
+app:
+  name: nextcloud
+  project: media
+  source:
+    repoURL: git@github.com:nextcloud/helm.git
+    targetRevision: nextcloud-8.5.2
+    path: charts/nextcloud
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: media
+  helm:
+    values: |
+      ingress:
+        enabled: true
+      phpClientHttpsFix:
+        enabled: true
+      postgresql:
+        enabled: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+      internalDatabase:
+        enabled: false
+      externalDatabase:
+        enabled: true
+        type: postgresql
+        existingSecret:
+          enabled: true
+          secretName: nextcloud-pg-cluster-app
+          usernameKey: username
+          passwordKey: password
+          hostKey: host
+          databaseKey: dbname
+      cronjob:
+        enabled: true
+        type: cronjob
+      nextcloud:
+        host: nextcloud.palewhale.fr
+        defaultConfigs:
+          imaginary.config.php: true
+        podSecurityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 33
+        existingSecret:
+          enabled: true
+          secretName: nextcloud-creds
+          usernameKey: username
+          passwordKey: password
+        extraVolumeMounts:
+          - name: media
+            mountPath: "/data"
+        extraVolumes:
+          - name: media
+            persistentVolumeClaim:
+              claimName: "media"
+      persistence:
+        enabled: true
+        storageClass: ceph-block
+        size: 8Gi
+        nextcloudData:
+          enabled: true
+          storageClass: ceph-block
+          size: 128Gi
+      metrics:
+        enabled: true
+      imaginary:
+        enabled: true
+      startupProbe:
+        enabled: true
+        failureThreshold: 90

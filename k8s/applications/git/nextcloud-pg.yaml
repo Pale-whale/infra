@@ -1,0 +1,39 @@
+app:
+  name: nextcloud-pg
+  project: infra
+  source:
+    repoURL: git@github.com:cloudnative-pg/charts.git
+    targetRevision: cluster-v0.3.1
+    path: charts/cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nextcloud
+  helm:
+    values: |
+      cluster:
+        instances: 1
+        initdb:
+          database: nextcloud
+          owner: nextcloud
+        storage:
+          size: 16Gi
+          storageClass: ceph-block
+        walStorage:
+          enabled: true
+          size: 2Gi
+          storageClass: ceph-block
+        resources:
+          limits:
+            memory: 4Gi
+          requests:
+            cpu: '300m'
+            memory: 1Gi
+        logLevel: warning
+        roles:
+          - name: nextcloud
+            ensure: present
+            login: true
+            superuser: false
+        postgresql:
+          pg_hba:
+            - host all all 10.0.0.0/8 md5
