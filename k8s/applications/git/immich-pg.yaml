@@ -1,6 +1,6 @@
 app:
   name: immich-pg
-  project: infra
+  project: immich
   source:
     repoURL: git@github.com:cloudnative-pg/charts.git
     targetRevision: cluster-v0.3.1

@@ -1,6 +1,6 @@
 app:
   name: immich
-  project: media
+  project: immich
   source:
     repoURL: git@github.com:immich-app/immich-charts.git
     targetRevision: immich-0.10.3

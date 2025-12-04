@@ -1,6 +1,6 @@
 app:
   name: immich-library
-  project: media
+  project: immich
   source:
     repoURL: git@github.com:palewhale/anything.git
     targetRevision: HEAD
