@@ -1,0 +1,7 @@
+apiVersion: v2
+name: anything
+description: deploy an arbitrary resource
+
+type: application
+
+version: 0.0.1
