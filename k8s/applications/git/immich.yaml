@@ -11,6 +11,8 @@ app:
   helm:
     values: |
       immich:
+        metrics:
+          enabled: true
         persistence:
           library:
             existingClaim: "immich-library"
