@@ -73,7 +73,6 @@ app:
             ports:
               http:
                 enabled: true
-                primary: true
                 port: 2283
                 targetPort: http
                 protocol: HTTP
