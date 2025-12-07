@@ -43,6 +43,13 @@ app:
           capabilities:
             add:
               - SYS_ADMIN
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: node-role.kubernetes.io/video
+                  operator: Exists
         ingress:
           enabled: true
           hosts:
