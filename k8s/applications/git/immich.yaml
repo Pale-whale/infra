@@ -53,6 +53,15 @@ app:
             accessMode: ReadWriteOnce
             storageClass: ceph-block
       server:
+        controllers:
+          main:
+            pod:
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 400Mi
+                limits:
+                  memory: 2Gi
         ingress:
           main:
             enabled: true
@@ -67,6 +76,12 @@ app:
         controllers:
           main:
             pod:
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  memory: 4Gi
               affinity:
                 nodeAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
