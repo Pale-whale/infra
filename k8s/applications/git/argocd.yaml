@@ -25,6 +25,20 @@ app:
             clientID: argocd
             clientSecret: $oidc.keycloak.clientSecret
             requestedScopes: ["openid", "profile", "email", "groups"]
+      controller:
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 600Mi
+      repoServer:
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 100Mi
       server:
         ingress:
           enabled: true
