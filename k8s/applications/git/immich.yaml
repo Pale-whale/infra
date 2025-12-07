@@ -62,6 +62,19 @@ app:
                   memory: 400Mi
                 limits:
                   memory: 2Gi
+        service:
+          local:
+            enabled: true
+            controller: main
+            primary: false
+            type: LoadBalancer
+            ports:
+              http:
+                enabled: true
+                primary: true
+                port: 2283
+                targetPort: http
+                protocol: HTTP
         ingress:
           main:
             enabled: true
