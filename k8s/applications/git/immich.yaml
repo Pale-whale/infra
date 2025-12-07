@@ -65,9 +65,11 @@ app:
         service:
           local:
             enabled: true
+            name: local
             controller: main
             primary: false
             type: LoadBalancer
+            address: 172.17.69.9
             ports:
               http:
                 enabled: true
