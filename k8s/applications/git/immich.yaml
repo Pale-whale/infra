@@ -79,7 +79,7 @@ app:
         serviceMonitor:
           main:
             service:
-              name: immich-server
+              name: immich-server-main
         ingress:
           main:
             enabled: true
