@@ -78,12 +78,7 @@ app:
                 protocol: HTTP
         serviceMonitor:
           main:
-            endpoints:
-            - port: metrics-api
-              scheme: http
-              name: immich-server
-            - port: metrics-ms
-              scheme: http
+            service:
               name: immich-server
         ingress:
           main:
