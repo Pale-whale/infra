@@ -64,13 +64,14 @@ app:
         enabled: true
         controllers:
           main:
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                  - matchExpressions:
-                    - key: node-role.kubernetes.io/video
-                      operator: Exists
+            pod:
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: node-role.kubernetes.io/video
+                        operator: Exists
             containers:
               main:
                 securityContext:
