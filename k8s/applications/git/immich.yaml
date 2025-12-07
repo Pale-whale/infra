@@ -76,6 +76,15 @@ app:
                 port: 2283
                 targetPort: http
                 protocol: HTTP
+        serviceMonitor:
+          main:
+            endpoints:
+            - port: metrics-api
+              scheme: http
+              name: immich-server
+            - port: metrics-ms
+              scheme: http
+              name: immich-server
         ingress:
           main:
             enabled: true
