@@ -42,7 +42,7 @@ app:
       cronjob:
         enabled: true
         type: cronjob
-        affinity:
+        cronjob:
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
