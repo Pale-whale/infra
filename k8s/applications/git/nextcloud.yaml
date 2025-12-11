@@ -3,7 +3,7 @@ app:
   project: media
   source:
     repoURL: git@github.com:nextcloud/helm.git
-    targetRevision: nextcloud-8.5.2
+    targetRevision: nextcloud-8.6.0
     path: charts/nextcloud
   destination:
     server: https://kubernetes.default.svc
@@ -42,6 +42,20 @@ app:
       cronjob:
         enabled: true
         type: cronjob
+        affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - nextcloud
+                  - key: app.kubernetes.io/component
+                    operator: In
+                    values:
+                      - app
+              topologyKey: kubernetes.io/hostname
       nextcloud:
         host: nextcloud.palewhale.fr
         defaultConfigs:
