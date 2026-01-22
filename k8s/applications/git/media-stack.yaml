@@ -32,7 +32,7 @@ app:
               host: sonarr.palewhale.fr
       mediaPVC:
         storageClassName: ceph-filesystem
-        size: 2000Gi
+        size: 8000Gi
       transcodePVC:
         storageClassName: ceph-block
         size: 100Gi
@@ -57,6 +57,9 @@ app:
               paths:
                 - path: /
                   pathType: ImplementationSpecific
+        persistence:
+          config:
+            size: 8Gi
         volumes:
           - name: dev-dri
             hostPath:
@@ -96,9 +99,9 @@ app:
         resources:
           requests:
             cpu: 200m
-            memory: 500Mi
+            memory: 800Mi
           limits:
-            memory: 1Gi
+            memory: 5Gi
             squat.ai/tun: "1"
         provider:
           name: PIA
