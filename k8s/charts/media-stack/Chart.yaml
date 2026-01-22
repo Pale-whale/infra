@@ -9,10 +9,10 @@ version: 0.0.1
 dependencies:
   - name: jellyfin
     condition: jellyfin.enabled
-    version: 2.5.0
+    version: 2.7.0
     repository: https://jellyfin.github.io/jellyfin-helm 
   - name: jellyseerr-chart
     alias: jellyseer
     condition: jellyseer.enabled
-    version: 2.7.0
+    version: 3.0.0
     repository: oci://ghcr.io/fallenbagel/jellyseerr
