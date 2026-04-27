@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:sergelogvinov/proxmox-csi-plugin.git 
-    targetRevision: v0.15.1
+    targetRevision: v0.18.1
     path: charts/proxmox-csi-plugin
   destination:
     server: https://kubernetes.default.svc
@@ -29,3 +29,12 @@ app:
           ssd: true
           mountOptions:
             - noatime
+        - name: proxmox-nvme-xfs
+          storage: nvme-vm
+          reclaimPolicy: Delete
+          cache: none
+          fstype: xfs
+          ssd: true
+          mountOptions:
+            - noatime
+            - discard
