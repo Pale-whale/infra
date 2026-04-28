@@ -54,6 +54,19 @@ app:
               kind: ClusterSecretStore
               name: infisical
             remoteKey: /romm/auth-secret-key
+        config:
+          defaults: |
+            scan:
+              priority:
+                language:
+                  - fr
+                  - en
+                region:
+                  - fr
+                  - eu
+                  - wor
+                  - us
+                  - jp
         oidc:
           enabled: true
           provider: keycloak

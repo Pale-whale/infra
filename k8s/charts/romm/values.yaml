@@ -157,6 +157,30 @@ romm:
   ##   FOO: { secretKeyRef: { name: ..., key: ... } }
   extraEnv: {}
 
+  ## Initial content for /romm/config/config.yml.
+  ##
+  ## When `defaults` is set, the chart renders a ConfigMap and an init container
+  ## that copies the file onto the config PVC ONLY if /romm/config/config.yml
+  ## doesn't already exist. After the first start romm owns the file (it mutates
+  ## it from the UI), so subsequent changes to `defaults` will not propagate to
+  ## existing deployments — delete the file on the PVC to re-seed.
+  ##
+  ## Leave empty to skip seeding.
+  ## See: https://docs.romm.app/latest/Getting-Started/Configuration-File/
+  config:
+    defaults: ""
+      # |
+      # exclude:
+      #   platforms:
+      #     - imageviewer
+      # system:
+      #   platforms:
+      #     gc: ngc
+    initImage:
+      repository: busybox
+      tag: "1.36"
+      pullPolicy: IfNotPresent
+
   ## Persistent storage for the romm container.
   persistence:
     library:

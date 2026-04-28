@@ -29,6 +29,28 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if and .Values.romm.persistence.config.enabled .Values.romm.config.defaults }}
+      initContainers:
+        - name: seed-config
+          image: "{{ .Values.romm.config.initImage.repository }}:{{ .Values.romm.config.initImage.tag }}"
+          imagePullPolicy: {{ .Values.romm.config.initImage.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -s /romm/config/config.yml ]; then
+                cp /defaults/config.yml /romm/config/config.yml
+                echo "seeded /romm/config/config.yml"
+              else
+                echo "/romm/config/config.yml already present, leaving as-is"
+              fi
+          volumeMounts:
+            - name: config
+              mountPath: /romm/config
+            - name: config-defaults
+              mountPath: /defaults
+              readOnly: true
+      {{- end }}
       containers:
         - name: romm
           {{- with .Values.romm.securityContext }}
@@ -156,6 +178,11 @@ spec:
           persistentVolumeClaim:
             claimName: {{ $cfg.existingClaim | default (printf "%s-%s" (include "romm.fullname" $) $name) }}
         {{- end }}
+        {{- end }}
+        {{- if and .Values.romm.persistence.config.enabled .Values.romm.config.defaults }}
+        - name: config-defaults
+          configMap:
+            name: {{ include "romm.fullname" . }}-config-defaults
         {{- end }}
         {{- with .Values.romm.extraVolumes }}
         {{- toYaml . | nindent 8 }}
