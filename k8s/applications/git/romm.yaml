@@ -67,10 +67,12 @@ app:
             roleAdmin: romm-admin
           clientSecret:
             enabled: true
-            secretStoreRef:
-              kind: ClusterSecretStore
-              name: infisical
-            remoteKey: /romm/oidc-client-secret
+            externalSecret:
+              enabled: true
+              secretStoreRef:
+                kind: ClusterSecretStore
+                name: infisical
+              remoteKey: /romm/oidc-client-secret
         persistence:
           library:
             storageClassName: ceph-block
