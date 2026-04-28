@@ -171,6 +171,7 @@ spec:
             {{- with .Values.romm.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
+      enableServiceLinks: false
       volumes:
         {{- range $name, $cfg := .Values.romm.persistence }}
         {{- if $cfg.enabled }}
