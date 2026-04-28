@@ -1,0 +1,10 @@
+app:
+  name: mariadb-operator-crds
+  project: infra
+  source:
+    repoURL: git@github.com:mariadb-operator/mariadb-operator.git
+    targetRevision: v26.3.0
+    path: deploy/charts/mariadb-operator-crds
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mariadb-operator
