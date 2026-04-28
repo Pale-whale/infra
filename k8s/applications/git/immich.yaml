@@ -3,7 +3,7 @@ app:
   project: immich
   source:
     repoURL: git@github.com:immich-app/immich-charts.git
-    targetRevision: immich-0.10.3
+    targetRevision: immich-0.11.1
     path: charts/immich
   destination:
     server: https://kubernetes.default.svc
