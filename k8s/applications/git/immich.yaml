@@ -59,7 +59,7 @@ app:
                   cpu: 50m
                   memory: 400Mi
                 limits:
-                  memory: 2Gi
+                  memory: 4Gi
         service:
           local:
             enabled: true
