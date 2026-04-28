@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:mariadb-operator/mariadb-operator.git
-    targetRevision: helm-chart-26.3.0
+    targetRevision: v26.3.0
     path: deploy/charts/mariadb-operator
   destination:
     server: https://kubernetes.default.svc
