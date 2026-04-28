@@ -8,3 +8,4 @@ app:
   destination:
     server: https://kubernetes.default.svc
     namespace: mariadb-operator
+  values: ''
