@@ -1,0 +1,8 @@
+apiVersion: v2
+name: romm
+description: Deploy RomM (Rom Manager) with optional embedded MariaDB or mariadb-operator-managed database
+
+type: application
+
+appVersion: "4.8.1"
+version: 0.0.1

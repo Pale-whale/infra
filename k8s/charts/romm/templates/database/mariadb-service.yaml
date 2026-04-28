@@ -1,0 +1,17 @@
+{{- if eq .Values.database.type "embedded" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "romm.mariadb.fullname" . }}
+  labels:
+    {{- include "romm.mariadb.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.database.embedded.service.type }}
+  ports:
+    - port: {{ .Values.database.embedded.service.port }}
+      targetPort: mysql
+      protocol: TCP
+      name: mysql
+  selector:
+    {{- include "romm.mariadb.selectorLabels" . | nindent 4 }}
+{{- end }}

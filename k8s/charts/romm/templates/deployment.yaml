@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "romm.fullname" . }}
+  labels:
+    {{- include "romm.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.romm.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "romm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.romm.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "romm.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.romm.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "romm.serviceAccountName" . }}
+      {{- with .Values.romm.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: romm
+          {{- with .Values.romm.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.romm.image.repository }}:{{ .Values.romm.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.romm.image.pullPolicy }}
+          env:
+            - name: TZ
+              value: {{ .Values.global.timezone | quote }}
+            - name: DB_HOST
+              value: {{ include "romm.database.host" . | quote }}
+            - name: DB_PORT
+              value: {{ .Values.database.connection.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.database.connection.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.database.connection.user | quote }}
+            - name: DB_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "romm.database.userPasswordSecretName" . }}
+                  key: {{ include "romm.database.userPasswordSecretKey" . }}
+            - name: ROMM_AUTH_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "romm.auth.secretName" . }}
+                  key: {{ include "romm.auth.secretKey" . }}
+            {{- if .Values.romm.oidc.enabled }}
+            - name: OIDC_ENABLED
+              value: "true"
+            - name: OIDC_PROVIDER
+              value: {{ required "romm.oidc.provider is required when oidc is enabled" .Values.romm.oidc.provider | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ required "romm.oidc.clientId is required when oidc is enabled" .Values.romm.oidc.clientId | quote }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "romm.oidc.clientSecretName" . }}
+                  key: {{ include "romm.oidc.clientSecretKey" . }}
+            - name: OIDC_REDIRECT_URI
+              value: {{ required "romm.oidc.redirectUri is required when oidc is enabled" .Values.romm.oidc.redirectUri | quote }}
+            - name: OIDC_SERVER_APPLICATION_URL
+              value: {{ required "romm.oidc.serverApplicationUrl is required when oidc is enabled" .Values.romm.oidc.serverApplicationUrl | quote }}
+            - name: PASSWORD_AUTH_ENABLED
+              value: {{ .Values.romm.oidc.passwordAuthEnabled | quote }}
+            {{- with .Values.romm.oidc.claim.roles }}
+            - name: OIDC_CLAIM_ROLES
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.romm.oidc.claim.roleViewer }}
+            - name: OIDC_ROLE_VIEWER
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.romm.oidc.claim.roleEditor }}
+            - name: OIDC_ROLE_EDITOR
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.romm.oidc.claim.roleAdmin }}
+            - name: OIDC_ROLE_ADMIN
+              value: {{ . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- include "romm.providerEnvVars" . | nindent 12 }}
+            {{- range $name, $entry := .Values.romm.extraEnv }}
+            - name: {{ $name }}
+              {{- if $entry.value }}
+              value: {{ $entry.value | quote }}
+              {{- else if $entry.secretKeyRef }}
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml $entry.secretKeyRef | nindent 18 }}
+              {{- end }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/heartbeat
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /api/heartbeat
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.romm.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.romm.persistence.library.enabled }}
+            - name: library
+              mountPath: /romm/library
+            {{- end }}
+            {{- if .Values.romm.persistence.assets.enabled }}
+            - name: assets
+              mountPath: /romm/assets
+            {{- end }}
+            {{- if .Values.romm.persistence.config.enabled }}
+            - name: config
+              mountPath: /romm/config
+            {{- end }}
+            {{- if .Values.romm.persistence.resources.enabled }}
+            - name: resources
+              mountPath: /romm/resources
+            {{- end }}
+            {{- if .Values.romm.persistence.redis.enabled }}
+            - name: redis
+              mountPath: /redis-data
+            {{- end }}
+            {{- with .Values.romm.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        {{- range $name, $cfg := .Values.romm.persistence }}
+        {{- if $cfg.enabled }}
+        - name: {{ $name }}
+          persistentVolumeClaim:
+            claimName: {{ $cfg.existingClaim | default (printf "%s-%s" (include "romm.fullname" $) $name) }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.romm.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.romm.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.romm.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.romm.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
