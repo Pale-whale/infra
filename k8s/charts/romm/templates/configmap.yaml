@@ -1,0 +1,11 @@
+{{- if and .Values.romm.persistence.config.enabled .Values.romm.config.defaults -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "romm.fullname" . }}-config-defaults
+  labels:
+    {{- include "romm.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    {{- .Values.romm.config.defaults | nindent 4 }}
+{{- end }}
