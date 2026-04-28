@@ -43,7 +43,7 @@ app.kubernetes.io/component: app
 {{- end }}
 {{- end }}
 
-{{/* MariaDB-related names. */}}
+{{/* MariaDB-related names (used by embedded mode only). */}}
 {{- define "romm.mariadb.fullname" -}}
 {{- printf "%s-mariadb" (include "romm.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
@@ -61,6 +61,30 @@ app.kubernetes.io/component: database
 {{- end }}
 
 {{/*
+Replicates the `mariadb-cluster.fullname` template from the upstream subchart.
+Used to predict the MariaDB CR / Service name and the auto-generated secret
+names without depending on the subchart's templates being rendered first.
+*/}}
+{{- define "romm.mariadbCluster.fullname" -}}
+{{- $sub := index .Values "mariadb-cluster" -}}
+{{- if $sub.fullnameOverride -}}
+{{- $sub.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default "mariadb-cluster" $sub.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{/* Convenience accessors for subchart-driven connection details (operator mode). */}}
+{{- define "romm.mariadbCluster.spec" -}}
+{{- (index .Values "mariadb-cluster" "mariadb") | toYaml -}}
+{{- end }}
+
+{{/*
 Resolve the database host the romm pod should connect to.
 Falls back to the in-cluster MariaDB service when type is embedded/operator.
 */}}
@@ -70,42 +94,94 @@ Falls back to the in-cluster MariaDB service when type is embedded/operator.
 {{- else if eq .Values.database.type "embedded" -}}
 {{ include "romm.mariadb.fullname" . }}
 {{- else if eq .Values.database.type "operator" -}}
-{{ include "romm.mariadb.fullname" . }}
+{{ include "romm.mariadbCluster.fullname" . }}
 {{- else -}}
 {{- fail "database.connection.host must be set when database.type=external" -}}
 {{- end -}}
 {{- end }}
 
 {{/*
-Name of the secret holding the database user password.
-Either user-provided (auth.existingSecret.name) or the one this chart creates.
+Database name used by the romm pod. For operator mode this comes from the
+subchart's `mariadb.database`; otherwise from `database.connection.name`.
+*/}}
+{{- define "romm.database.name" -}}
+{{- if eq .Values.database.type "operator" -}}
+{{- $db := index .Values "mariadb-cluster" "mariadb" "database" -}}
+{{- required "mariadb-cluster.mariadb.database is required when database.type=operator" $db -}}
+{{- else -}}
+{{ .Values.database.connection.name }}
+{{- end -}}
+{{- end }}
+
+{{- define "romm.database.user" -}}
+{{- if eq .Values.database.type "operator" -}}
+{{- $u := index .Values "mariadb-cluster" "mariadb" "username" -}}
+{{- required "mariadb-cluster.mariadb.username is required when database.type=operator" $u -}}
+{{- else -}}
+{{ .Values.database.connection.user }}
+{{- end -}}
+{{- end }}
+
+{{- define "romm.database.port" -}}
+{{- if eq .Values.database.type "operator" -}}
+{{- default 3306 (index .Values "mariadb-cluster" "mariadb" "port") -}}
+{{- else -}}
+{{ .Values.database.connection.port }}
+{{- end -}}
+{{- end }}
+
+{{/*
+Name & key of the Secret holding the application user's DB password.
+For operator mode, returns the Secret referenced by the subchart's
+`passwordSecretKeyRef` (so the chart-managed Secret/ExternalSecret aligns with
+what the MariaDB CR consumes).
 */}}
 {{- define "romm.database.userPasswordSecretName" -}}
 {{- if .Values.database.auth.existingSecret.name -}}
 {{ .Values.database.auth.existingSecret.name }}
+{{- else if eq .Values.database.type "operator" -}}
+{{- $ref := index .Values "mariadb-cluster" "mariadb" "passwordSecretKeyRef" -}}
+{{- required "mariadb-cluster.mariadb.passwordSecretKeyRef.name is required when database.type=operator" $ref.name -}}
 {{- else -}}
 {{ include "romm.fullname" . }}-db
 {{- end -}}
 {{- end }}
 
 {{- define "romm.database.userPasswordSecretKey" -}}
-{{- default "password" .Values.database.auth.existingSecret.key }}
+{{- if .Values.database.auth.existingSecret.key -}}
+{{ .Values.database.auth.existingSecret.key }}
+{{- else if eq .Values.database.type "operator" -}}
+{{- $ref := index .Values "mariadb-cluster" "mariadb" "passwordSecretKeyRef" -}}
+{{- default "password" $ref.key -}}
+{{- else -}}
+password
+{{- end -}}
 {{- end }}
 
 {{/*
-Name of the secret holding the MariaDB root password.
+Name & key of the Secret holding the MariaDB root password.
 Only meaningful when type=embedded or type=operator.
 */}}
 {{- define "romm.database.rootPasswordSecretName" -}}
 {{- if .Values.database.auth.rootExistingSecret.name -}}
 {{ .Values.database.auth.rootExistingSecret.name }}
+{{- else if eq .Values.database.type "operator" -}}
+{{- $ref := index .Values "mariadb-cluster" "mariadb" "rootPasswordSecretKeyRef" -}}
+{{- required "mariadb-cluster.mariadb.rootPasswordSecretKeyRef.name is required when database.type=operator" $ref.name -}}
 {{- else -}}
 {{ include "romm.fullname" . }}-db-root
 {{- end -}}
 {{- end }}
 
 {{- define "romm.database.rootPasswordSecretKey" -}}
-{{- default "password" .Values.database.auth.rootExistingSecret.key }}
+{{- if .Values.database.auth.rootExistingSecret.key -}}
+{{ .Values.database.auth.rootExistingSecret.key }}
+{{- else if eq .Values.database.type "operator" -}}
+{{- $ref := index .Values "mariadb-cluster" "mariadb" "rootPasswordSecretKeyRef" -}}
+{{- default "password" $ref.key -}}
+{{- else -}}
+password
+{{- end -}}
 {{- end }}
 
 {{/*

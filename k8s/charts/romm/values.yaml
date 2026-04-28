@@ -314,27 +314,47 @@ database:
 
   ## --------------------------------------------------------------------------
   ## type: operator — mariadb-operator-managed MariaDB
-  ## (https://github.com/mariadb-operator/mariadb-operator)
   ##
-  ## The chart provisions a single MariaDB CR. The inline `username`,
-  ## `database`, `rootPasswordSecretKeyRef`, and `passwordSecretKeyRef` fields
-  ## on the MariaDB spec are populated automatically from `database.connection`
-  ## and `database.auth`, which causes the operator to create the application
-  ## user and database. Anything you set under `operator.spec` is merged on
-  ## top of those, so you can tune storage, replicas, myCnf, metrics, etc.
+  ## When type=operator, this chart pulls in the upstream `mariadb-cluster`
+  ## subchart (https://github.com/mariadb-operator/mariadb-operator) and renders
+  ## the MariaDB CR through it. Configure the CR spec under the top-level
+  ## `mariadb-cluster:` block below — that is the upstream chart's value tree.
+  ##
+  ## The romm pod's DB_HOST / DB_USER / DB_NAME are derived from the subchart
+  ## values (the operator-created Service is named after the MariaDB CR).
+  ## Connection password and root password are owned by THIS chart (via
+  ## `database.auth` above) so ESO and ExternalSecret support stay uniform.
   ## --------------------------------------------------------------------------
-  operator:
-    spec:
-      replicas: 1
-      storage:
-        size: 8Gi
-        # storageClassName: ""
-      # myCnf: |
-      #   [mariadb]
-      #   bind-address=*
-      # resources:
-      #   requests:
-      #     cpu: 100m
-      #     memory: 256Mi
-      # metrics:
-      #   enabled: false
+
+## Upstream `mariadb-cluster` subchart values (used only when type=operator).
+## Reference: https://github.com/mariadb-operator/mariadb-operator/tree/v26.3.0/deploy/charts/mariadb-cluster
+##
+## The defaults below produce a single-instance, non-galera MariaDB suitable
+## for romm. Override any field as you would for the upstream chart.
+mariadb-cluster:
+  ## Set to true when database.type=operator. The dependency is conditional on
+  ## this flag, so leave false for embedded/external modes.
+  enabled: false
+
+  ## Pin the MariaDB CR name to "mariadb" so the operator-created Service is
+  ## "mariadb" — predictable from this chart and matches the secret names below.
+  fullnameOverride: mariadb
+
+  mariadb:
+    rootPasswordSecretKeyRef:
+      name: mariadb-root
+      key: password
+      generate: false
+    username: romm
+    passwordSecretKeyRef:
+      name: mariadb-password
+      key: password
+      generate: false
+    database: romm
+    port: 3306
+    replicas: 1
+    galera:
+      enabled: false
+    storage:
+      size: 8Gi
+      # storageClassName: ""

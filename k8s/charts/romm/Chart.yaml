@@ -6,3 +6,9 @@ type: application
 
 appVersion: "4.8.1"
 version: 0.0.1
+
+dependencies:
+  - name: mariadb-cluster
+    version: 26.3.0
+    repository: https://helm.mariadb.com/mariadb-operator
+    condition: mariadb-cluster.enabled

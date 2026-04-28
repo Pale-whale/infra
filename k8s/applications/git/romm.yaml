@@ -28,18 +28,18 @@ app:
               kind: ClusterSecretStore
               name: infisical
             remoteKey: /romm/db-root-password
-        operator:
-          spec:
-            replicas: 1
-            storage:
-              size: 4Gi
-              storageClassName: ceph-block
-            resources:
-              requests:
-                cpu: 50m
-                memory: 256Mi
-              limits:
-                memory: 1Gi
+      mariadb-cluster:
+        enabled: true
+        mariadb:
+          storage:
+            size: 4Gi
+            storageClassName: ceph-block
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
       romm:
         ingress:
           enabled: true

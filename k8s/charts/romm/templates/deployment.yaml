@@ -43,11 +43,11 @@ spec:
             - name: DB_HOST
               value: {{ include "romm.database.host" . | quote }}
             - name: DB_PORT
-              value: {{ .Values.database.connection.port | quote }}
+              value: {{ include "romm.database.port" . | quote }}
             - name: DB_NAME
-              value: {{ .Values.database.connection.name | quote }}
+              value: {{ include "romm.database.name" . | quote }}
             - name: DB_USER
-              value: {{ .Values.database.connection.user | quote }}
+              value: {{ include "romm.database.user" . | quote }}
             - name: DB_PASSWD
               valueFrom:
                 secretKeyRef:
