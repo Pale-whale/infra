@@ -60,6 +60,12 @@ app:
         persistence:
           config:
             size: 8Gi
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 100m
+            memory: 700Mi
         volumes:
           - name: dev-dri
             hostPath:
