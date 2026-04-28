@@ -126,6 +126,33 @@ app:
             - '*'
             manualSync: true
       - apiVersion: argoproj.io/v1alpha1
+        kind: AppProject
+        metadata:
+          name: romm
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          description: Holds the romm
+          sourceRepos:
+          - '*'
+          destinations:
+          - namespace: 'romm'
+            server: https://kubernetes.default.svc
+          clusterResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          namespaceResourceBlacklist: []
+          namespaceResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          syncWindows:
+          - kind: allow
+            schedule: '30 5 * * SAT,SUN'
+            duration: 5h
+            applications:
+            - '*'
+            manualSync: true
+      - apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
           name: root

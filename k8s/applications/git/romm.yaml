@@ -1,6 +1,6 @@
 app:
   name: romm
-  project: media
+  project: romm
   source:
     repoURL: git@github.com:pale-whale/infra.git
     targetRevision: HEAD
