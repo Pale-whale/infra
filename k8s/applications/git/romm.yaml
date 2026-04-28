@@ -1,0 +1,118 @@
+app:
+  name: romm
+  project: media
+  source:
+    repoURL: git@github.com:pale-whale/infra.git
+    targetRevision: HEAD
+    path: k8s/charts/romm
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: romm
+  helm:
+    values: |
+      database:
+        type: operator
+        connection:
+          name: romm
+          user: romm
+        auth:
+          externalSecret:
+            enabled: true
+            secretStoreRef:
+              kind: ClusterSecretStore
+              name: infisical
+            remoteKey: /romm/db-password
+          rootExternalSecret:
+            enabled: true
+            secretStoreRef:
+              kind: ClusterSecretStore
+              name: infisical
+            remoteKey: /romm/db-root-password
+        operator:
+          spec:
+            replicas: 1
+            storage:
+              size: 4Gi
+              storageClassName: ceph-block
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+      romm:
+        ingress:
+          enabled: true
+          className: traefik
+          host: romm.palewhale.fr
+          annotations:
+            traefik.ingress.kubernetes.io/router.tls: 'true'
+        auth:
+          externalSecret:
+            enabled: true
+            secretStoreRef:
+              kind: ClusterSecretStore
+              name: infisical
+            remoteKey: /romm/auth-secret-key
+        oidc:
+          enabled: true
+          provider: keycloak
+          clientId: romm
+          redirectUri: https://romm.palewhale.fr/api/oauth/openid
+          serverApplicationUrl: https://keycloak.palewhale.fr/realms/romm
+          claim:
+            roles: groups
+            roleViewer: romm-viewer
+            roleEditor: romm-editor
+            roleAdmin: romm-admin
+          clientSecret:
+            enabled: true
+            secretStoreRef:
+              kind: ClusterSecretStore
+              name: infisical
+            remoteKey: /romm/oidc-client-secret
+        persistence:
+          library:
+            storageClassName: ceph-block
+            accessModes:
+              - ReadWriteOnce
+            size: 100Gi
+          assets:
+            storageClassName: ceph-block
+            size: 5Gi
+          config:
+            storageClassName: ceph-block
+            size: 1Gi
+          resources:
+            storageClassName: ceph-block
+            size: 5Gi
+          redis:
+            storageClassName: ceph-block
+            size: 1Gi
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+        providers:
+          screenscraper:
+            enabled: true
+            ## Public ScreenScraper username — not sensitive, kept inline.
+            username: palewhale
+            password:
+              externalSecret:
+                enabled: true
+                secretStoreRef:
+                  kind: ClusterSecretStore
+                  name: infisical
+                remoteKey: /romm/screenscraper-password
+          retroachievements:
+            enabled: true
+            apiKey:
+              externalSecret:
+                enabled: true
+                secretStoreRef:
+                  kind: ClusterSecretStore
+                  name: infisical
+                remoteKey: /romm/retroachievements-api-key

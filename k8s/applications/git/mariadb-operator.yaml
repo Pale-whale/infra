@@ -1,0 +1,24 @@
+app:
+  name: mariadb-operator
+  project: infra
+  source:
+    repoURL: git@github.com:mariadb-operator/mariadb-operator.git
+    targetRevision: helm-chart-26.3.0
+    path: deploy/charts/mariadb-operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mariadb-operator
+  helm:
+    values: |
+      ha:
+        enabled: false
+      metrics:
+        enabled: false
+      webhook:
+        enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
