@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:argoproj/argo-helm.git
-    targetRevision: argo-cd-9.0.6
+    targetRevision: argo-cd-9.5.13
     path: charts/argo-cd
   destination:
     server: https://kubernetes.default.svc
