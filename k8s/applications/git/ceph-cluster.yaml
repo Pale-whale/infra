@@ -108,6 +108,8 @@ app:
               devices:
                 - deviceClass: ssd
                   name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2"
+                - deviceClass: ssd
+                  name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi3"
             - name: "agent-dewey"
               devices:
                 - deviceClass: ssd
