@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:rook/rook.git
-    targetRevision: v1.18.6
+    targetRevision: v1.19.6
     path: deploy/charts/rook-ceph
   destination:
     server: https://kubernetes.default.svc
