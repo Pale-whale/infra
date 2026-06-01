@@ -12,6 +12,9 @@ app:
     values: |
       operatorNamespace: rook-ceph
       clusterName: homelab
+      cephImage:
+        tag: v19.2.3
+        allowUnsupported: false
       toolbox:
         enabled:
           true
@@ -49,9 +52,6 @@ app:
           enabled: true
           periodicity: daily
           maxLogSize: 500M
-        cephVersion:
-          image: quay.io/ceph/ceph:v19.2.3
-          allowUnsupported: false
         skipUpgradeChecks: false
         continueUpgradeAfterChecksEvenIfNotHealthy: false
         placement:
@@ -118,6 +118,14 @@ app:
               devices:
                 - deviceClass: nvme
                   name: "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0Y903438J"
+      ingress:
+        dashboard:
+          annotations:
+            traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
+          host:
+            name: ceph.palewhale.fr
+            path: "/"
+            pathType: Prefix
       cephBlockPools:
         - name: ceph-blockpool
           spec:
