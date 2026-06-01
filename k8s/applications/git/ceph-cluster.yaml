@@ -96,13 +96,13 @@ app:
             requests:
               cpu: "1"
               memory: "6Gi"
+        disruptionManagement:
+          managePodBudgets: true
+          osdMaintenanceTimeout: 30
         storage:
           useAllNodes: false
           useAllDevices: false
           allowDeviceClassUpdate: true
-          disruptionManagement:
-            managePodBudgets: true
-            osdMaintenanceTimeout: 30
           nodes:
             - name: "agent-milo"
               devices:
