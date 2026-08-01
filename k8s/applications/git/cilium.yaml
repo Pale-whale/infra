@@ -44,7 +44,7 @@ app:
       installNoConntrackIptablesRules: true
       ipam:
         mode: kubernetes
-      ipv4NativeRoutingCIDR: "10.0.0.0/8"
+      ipv4NativeRoutingCIDR: "10.10.0.0/16"
       kubeProxyReplacement: true
       localRedirectPolicy: true
       localRedirectPolicies:
