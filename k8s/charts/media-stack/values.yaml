@@ -160,7 +160,7 @@ transmission:
 prowlarr:
   image:
     repository: lscr.io/linuxserver/prowlarr
-    tag: 2.3.0
+    tag: 2.3.5
   imagePullSecrets: []
 
   persistence:
@@ -190,8 +190,9 @@ prowlarr:
 
 sonarr:
   image:
-    repository: lscr.io/linuxserver/sonarr 
+    repository: lscr.io/linuxserver/sonarr
     tag: 4.0.16
+    pullPolicy: Always
   imagePullSecrets: []
 
   persistence:
