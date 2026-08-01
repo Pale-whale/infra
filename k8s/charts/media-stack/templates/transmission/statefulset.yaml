@@ -63,14 +63,33 @@ spec:
             - name: http
               containerPort: 9091
               protocol: TCP
+          # The VPN tunnel is established before Transmission's web UI comes up
+          # (~1 min on boot). The startup probe gives it up to 5 min to become
+          # healthy before liveness takes over, so a slow VPN handshake can't
+          # trigger a restart loop. Liveness is deliberately tolerant (10s
+          # timeout, 5 failures over 30s periods = ~2.5 min) so a brief stall
+          # doesn't kill the pod and force a VPN reconnect.
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /
               port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /
               port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.transmission.resources | nindent 12 }}
           volumeMounts:
