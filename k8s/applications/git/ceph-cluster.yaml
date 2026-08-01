@@ -54,6 +54,18 @@ app:
           maxLogSize: 500M
         skipUpgradeChecks: false
         continueUpgradeAfterChecksEvenIfNotHealthy: false
+        # OSDs are consumer WD SA500 SATA SSDs (no power-loss protection) passed
+        # via virtio, all on a single Proxmox node. Their O_DSYNC latency is fine
+        # at low queue depth but collapses (aio_wait seen up to ~6s) under
+        # concurrent background IO, freezing client-facing workloads. mclock's
+        # auto-benchmark also wildly overestimates their capacity (~56-77k IOPS),
+        # so the default 'balanced' profile let too much scrub/recovery IO through.
+        # Prioritise client IO and cap concurrent scrubs. Applied cluster-wide via
+        # `ceph config set osd ...`.
+        cephConfig:
+          osd:
+            osd_mclock_profile: "high_client_ops"
+            osd_max_scrubs: "1"
         placement:
           mon:
             nodeAffinity:
