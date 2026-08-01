@@ -177,10 +177,5 @@ app:
           accessModes:
             - ReadWriteOnce
       ygege:
-        enabled: true
-        persistence:
-          enabled: true
-          storageClassName: ceph-block
-          accessModes:
-            - ReadWriteOnce
+        enabled: false
 
