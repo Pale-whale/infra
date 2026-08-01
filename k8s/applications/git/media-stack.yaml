@@ -32,7 +32,7 @@ app:
               host: sonarr.palewhale.fr
       mediaPVC:
         storageClassName: ceph-filesystem
-        size: 2000Gi
+        size: 8000Gi
       transcodePVC:
         storageClassName: ceph-block
         size: 100Gi
@@ -43,6 +43,13 @@ app:
           capabilities:
             add:
               - SYS_ADMIN
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: node-role.kubernetes.io/video
+                  operator: Exists
         ingress:
           enabled: true
           hosts:
@@ -50,6 +57,15 @@ app:
               paths:
                 - path: /
                   pathType: ImplementationSpecific
+        persistence:
+          config:
+            size: 8Gi
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 100m
+            memory: 700Mi
         volumes:
           - name: dev-dri
             hostPath:

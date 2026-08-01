@@ -3,7 +3,7 @@ app:
   project: immich
   source:
     repoURL: git@github.com:immich-app/immich-charts.git
-    targetRevision: immich-0.10.3
+    targetRevision: immich-0.13.1
     path: charts/immich
   destination:
     server: https://kubernetes.default.svc
@@ -11,6 +11,8 @@ app:
   helm:
     values: |
       immich:
+        metrics:
+          enabled: true
         persistence:
           library:
             existingClaim: "immich-library"
@@ -18,8 +20,6 @@ app:
         main:
           containers:
             main:
-              image:
-                tag: v2.0.0
               env:
                 DB_HOSTNAME:
                   valueFrom:
@@ -43,7 +43,41 @@ app:
                       key: dbname
       valkey:
         enabled: true
+        persistence:
+          data:
+            enabled: true
+            size: 5Gi
+            type: persistentVolumeClaim
+            accessMode: ReadWriteOnce
+            storageClass: ceph-block
       server:
+        controllers:
+          main:
+            pod:
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 400Mi
+                limits:
+                  memory: 4Gi
+        service:
+          local:
+            enabled: true
+            name: local
+            controller: main
+            primary: false
+            type: LoadBalancer
+            loadBalancerIP: 172.17.69.9
+            ports:
+              http:
+                enabled: true
+                port: 2283
+                targetPort: http
+                protocol: HTTP
+        serviceMonitor:
+          main:
+            service:
+              name: immich-server-main
         ingress:
           main:
             enabled: true
@@ -53,3 +87,38 @@ app:
                   - path: "/"
                     service:
                       identifier: main
+      machine-learning:
+        enabled: true
+        controllers:
+          main:
+            pod:
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  memory: 4Gi
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: node-role.kubernetes.io/video
+                        operator: Exists
+            containers:
+              main:
+                securityContext:
+                  capabilities:
+                    add:
+                    - SYS_ADMIN
+        persistence:
+          video:
+            enabled: true
+            type: hostPath
+            hostPath: /dev/dri
+          cache:
+            enabled: true
+            size: 10Gi
+            type: persistentVolumeClaim
+            accessMode: ReadWriteMany
+            storageClass: ceph-filesystem

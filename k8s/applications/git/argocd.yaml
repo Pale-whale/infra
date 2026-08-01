@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:argoproj/argo-helm.git
-    targetRevision: argo-cd-9.0.6
+    targetRevision: argo-cd-9.5.13
     path: charts/argo-cd
   destination:
     server: https://kubernetes.default.svc
@@ -25,6 +25,20 @@ app:
             clientID: argocd
             clientSecret: $oidc.keycloak.clientSecret
             requestedScopes: ["openid", "profile", "email", "groups"]
+      controller:
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 600Mi
+      repoServer:
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 100Mi
       server:
         ingress:
           enabled: true
@@ -96,6 +110,33 @@ app:
           - '*'
           destinations:
           - namespace: 'immich'
+            server: https://kubernetes.default.svc
+          clusterResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          namespaceResourceBlacklist: []
+          namespaceResourceWhitelist:
+          - group: '*'
+            kind: '*'
+          syncWindows:
+          - kind: allow
+            schedule: '30 5 * * SAT,SUN'
+            duration: 5h
+            applications:
+            - '*'
+            manualSync: true
+      - apiVersion: argoproj.io/v1alpha1
+        kind: AppProject
+        metadata:
+          name: romm
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          description: Holds the romm
+          sourceRepos:
+          - '*'
+          destinations:
+          - namespace: 'romm'
             server: https://kubernetes.default.svc
           clusterResourceWhitelist:
           - group: '*'

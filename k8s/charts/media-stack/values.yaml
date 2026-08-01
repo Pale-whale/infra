@@ -160,7 +160,7 @@ transmission:
 prowlarr:
   image:
     repository: lscr.io/linuxserver/prowlarr
-    tag: 2.1.5
+    tag: 2.3.0
   imagePullSecrets: []
 
   persistence:
@@ -222,7 +222,7 @@ sonarr:
 radarr:
   image:
     repository: lscr.io/linuxserver/radarr
-    tag: 5.28.0
+    tag: 6.0.4
   imagePullSecrets: []
 
   persistence:

@@ -1,0 +1,99 @@
+{{- if eq .Values.database.type "embedded" -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "romm.mariadb.fullname" . }}
+  labels:
+    {{- include "romm.mariadb.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "romm.mariadb.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "romm.mariadb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "romm.mariadb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.database.embedded.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: mariadb
+          image: "{{ .Values.database.embedded.image.repository }}:{{ .Values.database.embedded.image.tag }}"
+          imagePullPolicy: {{ .Values.database.embedded.image.pullPolicy }}
+          {{- with .Values.database.embedded.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "romm.database.rootPasswordSecretName" . }}
+                  key: {{ include "romm.database.rootPasswordSecretKey" . }}
+            - name: MARIADB_DATABASE
+              value: {{ .Values.database.connection.name | quote }}
+            - name: MARIADB_USER
+              value: {{ .Values.database.connection.user | quote }}
+            - name: MARIADB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "romm.database.userPasswordSecretName" . }}
+                  key: {{ include "romm.database.userPasswordSecretKey" . }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - healthcheck.sh
+                - --connect
+                - --innodb_initialized
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - healthcheck.sh
+                - --connect
+                - --innodb_initialized
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.database.embedded.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      {{- with .Values.database.embedded.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.database.embedded.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.database.embedded.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.database.embedded.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          {{- toYaml .Values.database.embedded.persistence.accessModes | nindent 10 }}
+        {{- with .Values.database.embedded.persistence.storageClassName }}
+        storageClassName: {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.database.embedded.persistence.size }}
+  {{- end }}
+{{- end }}

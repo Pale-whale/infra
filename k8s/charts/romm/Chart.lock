@@ -1,0 +1,6 @@
+dependencies:
+- name: mariadb-cluster
+  repository: https://helm.mariadb.com/mariadb-operator
+  version: 26.3.0
+digest: sha256:da3b18dc3e8f933d8c768fe6fd0661b3575a9680fa65375bf03db529488e0a94
+generated: "2026-04-28T19:03:41.531584+02:00"

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: romm
+description: Deploy RomM (Rom Manager) with optional embedded MariaDB or mariadb-operator-managed database
+
+type: application
+
+appVersion: "5.0"
+version: 0.0.1
+
+dependencies:
+  - name: mariadb-cluster
+    version: 26.3.0
+    repository: https://helm.mariadb.com/mariadb-operator
+    condition: mariadb-cluster.enabled

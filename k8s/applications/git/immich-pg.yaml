@@ -12,7 +12,7 @@ app:
     values: |
       cluster:
         instances: 1
-        imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.7
+        imageName: ghcr.io/tensorchord/cloudnative-vectorchord:17.5-0.4.3
         initdb:
           database: immich
           owner: immich

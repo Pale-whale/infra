@@ -1,0 +1,384 @@
+## RomM (Rom Manager) Helm chart values.
+## Docs: https://docs.romm.app/latest/Getting-Started/Quick-Start-Guide/
+
+global:
+  timezone: 'Europe/Paris'
+
+## RomM application
+romm:
+  replicaCount: 1
+
+  image:
+    repository: rommapp/romm
+    pullPolicy: IfNotPresent
+    tag: ""  # defaults to .Chart.AppVersion
+
+  imagePullSecrets: []
+
+  ## Authentication secret (ROMM_AUTH_SECRET_KEY).
+  ## Provide one of:
+  ##   - existingSecret: { name, key }       (recommended for GitOps)
+  ##   - externalSecret: pulls from a SecretStore via external-secrets.io
+  auth:
+    existingSecret: {}
+      # name: romm-auth
+      # key: secret-key
+    externalSecret:
+      enabled: false
+      secretStoreRef: {}
+        # kind: ClusterSecretStore
+        # name: infisical
+      remoteKey: ""
+        # /romm/auth-secret-key
+
+  ## OIDC / SSO (e.g. Keycloak).
+  ## Docs: https://docs.romm.app/latest/OIDC-Guides/OIDC-Setup-With-Keycloak/
+  oidc:
+    enabled: false
+    provider: keycloak
+    clientId: ""
+    ## URL romm sends users back to after authenticating, e.g.
+    ##   https://romm.example.com/api/oauth/openid
+    redirectUri: ""
+    ## Realm base URL on the IdP, e.g.
+    ##   https://keycloak.example.com/realms/<realm>
+    serverApplicationUrl: ""
+    ## Set to false to disable local password login and force OIDC only.
+    passwordAuthEnabled: true
+    ## Optional role-claim mapping. Leave empty to skip.
+    claim:
+      roles: ""
+      roleViewer: ""
+      roleEditor: ""
+      roleAdmin: ""
+    ## Client secret. Provide one of:
+    ##   - existingSecret: { name, key }
+    ##   - externalSecret: pulls from a SecretStore via external-secrets.io
+    clientSecret:
+      existingSecret: {}
+        # name: romm-oidc
+        # key: client-secret
+      externalSecret:
+        enabled: false
+        secretStoreRef: {}
+          # kind: ClusterSecretStore
+          # name: infisical
+        remoteKey: ""
+          # /romm/oidc-client-secret
+
+  ## Metadata providers.
+  ## Docs: https://docs.romm.app/latest/Getting-Started/Metadata-Providers/
+  ##
+  ## Each provider has `enabled`. Credentials (client secrets, API keys,
+  ## passwords) accept any of:
+  ##   value: "literal"                          # inline (use for testing or with SOPS)
+  ##   existingSecret: { name: ..., key: ... }   # reference an existing Secret
+  ##   externalSecret:                            # let the chart create an ExternalSecret
+  ##     enabled: true
+  ##     secretStoreRef: { kind: ..., name: ... }
+  ##     remoteKey: /path/in/store
+  ##
+  ## Plain identifiers (client IDs, usernames) are always inline strings — they
+  ## are not sensitive in the OAuth/API-key sense.
+  providers:
+    igdb:
+      enabled: false
+      clientId: ""
+      clientSecret:
+        value: ""
+        existingSecret: {}
+        externalSecret:
+          enabled: false
+          secretStoreRef: {}
+          remoteKey: ""
+
+    screenscraper:
+      enabled: false
+      username: ""
+      password:
+        value: ""
+        existingSecret: {}
+        externalSecret:
+          enabled: false
+          secretStoreRef: {}
+          remoteKey: ""
+
+    mobygames:
+      enabled: false
+      apiKey:
+        value: ""
+        existingSecret: {}
+        externalSecret:
+          enabled: false
+          secretStoreRef: {}
+          remoteKey: ""
+
+    steamgriddb:
+      enabled: false
+      apiKey:
+        value: ""
+        existingSecret: {}
+        externalSecret:
+          enabled: false
+          secretStoreRef: {}
+          remoteKey: ""
+
+    retroachievements:
+      enabled: false
+      apiKey:
+        value: ""
+        existingSecret: {}
+        externalSecret:
+          enabled: false
+          secretStoreRef: {}
+          remoteKey: ""
+      ## Optional cache refresh interval (REFRESH_RETROACHIEVEMENTS_CACHE_DAYS)
+      refreshCacheDays: ""
+
+    launchbox:
+      enabled: false
+      ## ENABLE_SCHEDULED_UPDATE_LAUNCHBOX_METADATA + SCHEDULED_UPDATE_LAUNCHBOX_METADATA_CRON
+      scheduledUpdate:
+        enabled: false
+        cron: ""
+
+    ## Toggle-only providers
+    hasheous:
+      enabled: false
+    playmatch:
+      enabled: false
+    flashpoint:
+      enabled: false
+    hltb:
+      enabled: false
+
+  ## Free-form extra environment variables. Each entry is either:
+  ##   FOO: { value: "bar" }
+  ##   FOO: { secretKeyRef: { name: ..., key: ... } }
+  extraEnv: {}
+
+  ## Initial content for /romm/config/config.yml.
+  ##
+  ## When `defaults` is set, the chart renders a ConfigMap and an init container
+  ## that copies the file onto the config PVC ONLY if /romm/config/config.yml
+  ## doesn't already exist. After the first start romm owns the file (it mutates
+  ## it from the UI), so subsequent changes to `defaults` will not propagate to
+  ## existing deployments — delete the file on the PVC to re-seed.
+  ##
+  ## Leave empty to skip seeding.
+  ## See: https://docs.romm.app/latest/Getting-Started/Configuration-File/
+  config:
+    defaults: ""
+      # |
+      # exclude:
+      #   platforms:
+      #     - imageviewer
+      # system:
+      #   platforms:
+      #     gc: ngc
+    initImage:
+      repository: busybox
+      tag: "1.36"
+      pullPolicy: IfNotPresent
+
+  ## Persistent storage for the romm container.
+  persistence:
+    library:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 200Gi
+      ## To reuse an existing PVC (e.g. shared media volume):
+      existingClaim: ""
+    assets:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 20Gi
+      existingClaim: ""
+    config:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+      existingClaim: ""
+    resources:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 20Gi
+      existingClaim: ""
+    redis:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 2Gi
+      existingClaim: ""
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # traefik.ingress.kubernetes.io/router.tls: "true"
+    host: romm.example.local
+    path: /
+    pathType: ImplementationSpecific
+    tls: []
+      # - secretName: romm-tls
+      #   hosts:
+      #     - romm.example.local
+
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+
+  resources: {}
+    # limits:
+    #   memory: 2Gi
+    # requests:
+    #   cpu: 100m
+    #   memory: 256Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  extraVolumes: []
+  extraVolumeMounts: []
+
+## Database backend.
+##
+## Supported types:
+##   - embedded: deploy a standalone MariaDB StatefulSet alongside romm
+##   - operator: provision a MariaDB CR managed by mariadb-operator
+##              (https://github.com/mariadb-operator/mariadb-operator)
+##   - external: connect to a database that already exists; nothing is created
+database:
+  type: embedded
+
+  ## Connection details. Used by the romm pod for DB_HOST/DB_NAME/DB_USER/DB_PASSWD.
+  ## For `embedded` and `operator`, host defaults to the in-cluster service.
+  ## For `external`, host must be set explicitly.
+  connection:
+    host: ""
+    port: 3306
+    name: romm
+    user: romm
+
+  ## Credentials. The user-password Secret is consumed by:
+  ##   - the romm pod (DB_PASSWD)
+  ##   - the embedded MariaDB pod (when type=embedded)
+  ##   - the mariadb-operator MariaDB CR (when type=operator)
+  ##
+  ## For each password, you may supply (in order of precedence):
+  ##   - existingSecret: { name, key }              # reference a pre-existing K8s Secret
+  ##   - externalSecret: { enabled, ... }           # let the chart create an ExternalSecret
+  ##   - password: "literal"                        # chart creates a Secret with this value
+  auth:
+    existingSecret: {}
+      # name: romm-db
+      # key: password
+    externalSecret:
+      enabled: false
+      secretStoreRef: {}
+        # kind: ClusterSecretStore
+        # name: infisical
+      remoteKey: ""
+        # /romm/db-password
+    password: ""
+
+    ## Root password (only used when type=embedded or type=operator).
+    rootExistingSecret: {}
+      # name: romm-db-root
+      # key: password
+    rootExternalSecret:
+      enabled: false
+      secretStoreRef: {}
+      remoteKey: ""
+        # /romm/db-root-password
+    rootPassword: ""
+
+  ## --------------------------------------------------------------------------
+  ## type: embedded — vanilla MariaDB StatefulSet
+  ## --------------------------------------------------------------------------
+  embedded:
+    image:
+      repository: mariadb
+      tag: "11"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 3306
+    persistence:
+      enabled: true
+      storageClassName: ""
+      accessModes:
+        - ReadWriteOnce
+      size: 8Gi
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    podSecurityContext: {}
+    securityContext: {}
+
+  ## --------------------------------------------------------------------------
+  ## type: operator — mariadb-operator-managed MariaDB
+  ##
+  ## When type=operator, this chart pulls in the upstream `mariadb-cluster`
+  ## subchart (https://github.com/mariadb-operator/mariadb-operator) and renders
+  ## the MariaDB CR through it. Configure the CR spec under the top-level
+  ## `mariadb-cluster:` block below — that is the upstream chart's value tree.
+  ##
+  ## The romm pod's DB_HOST / DB_USER / DB_NAME are derived from the subchart
+  ## values (the operator-created Service is named after the MariaDB CR).
+  ## Connection password and root password are owned by THIS chart (via
+  ## `database.auth` above) so ESO and ExternalSecret support stay uniform.
+  ## --------------------------------------------------------------------------
+
+## Upstream `mariadb-cluster` subchart values (used only when type=operator).
+## Reference: https://github.com/mariadb-operator/mariadb-operator/tree/v26.3.0/deploy/charts/mariadb-cluster
+##
+## The defaults below produce a single-instance, non-galera MariaDB suitable
+## for romm. Override any field as you would for the upstream chart.
+mariadb-cluster:
+  ## Set to true when database.type=operator. The dependency is conditional on
+  ## this flag, so leave false for embedded/external modes.
+  enabled: false
+
+  ## Pin the MariaDB CR name to "mariadb" so the operator-created Service is
+  ## "mariadb" — predictable from this chart and matches the secret names below.
+  fullnameOverride: mariadb
+
+  mariadb:
+    rootPasswordSecretKeyRef:
+      name: mariadb-root
+      key: password
+      generate: false
+    username: romm
+    passwordSecretKeyRef:
+      name: mariadb-password
+      key: password
+      generate: false
+    database: romm
+    port: 3306
+    replicas: 1
+    galera:
+      enabled: false
+    storage:
+      size: 8Gi
+      # storageClassName: ""
