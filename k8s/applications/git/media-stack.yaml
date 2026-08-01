@@ -102,6 +102,13 @@ app:
         extraEnv:
         - name: TRANSMISSION_INCOMPLETE_DIR
           value: '/downloads/incomplete'
+        # /downloads is CephFS, where a single fsync takes ~2s (vs ~0.04s on
+        # ceph-block). Transmission holds its global session lock during disk
+        # flushes, so the default 4MB cache -> constant fsyncs -> the RPC/web UI
+        # freezes for seconds at a time while downloading. A large cache batches
+        # writes into far fewer flushes, drastically cutting the lock-holding stalls.
+        - name: TRANSMISSION_CACHE_SIZE_MB
+          value: '256'
         resources:
           requests:
             cpu: 800m
