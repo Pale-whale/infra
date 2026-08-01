@@ -79,7 +79,7 @@ app:
             size: 20Gi
       transmission:
         image:
-          tag: 5.3.1
+          tag: 5.4.2
         user:
           uid: 1000
           gid: 1000
@@ -88,16 +88,22 @@ app:
           value: '/downloads/incomplete'
         resources:
           requests:
-            cpu: 200m
-            memory: 500Mi
+            cpu: 800m
+            memory: 800Mi
           limits:
-            memory: 1Gi
-            squat.ai/tun: "1"
+            memory: 5Gi
         provider:
           name: PIA
           localNetwork: '10.0.0.0/8,172.16.0.0/16'
           create_tun_device: 'false'
           endpoint: france
+          # Silence the OpenVPN "AEAD Decrypt error: bad packet ID (may be a replay)"
+          # flood: on reconnect PIA briefly keeps the old session alive alongside the
+          # new one, so both sessions cross-receive traffic and each flags the other's
+          # packets as replays (~10k log lines/sec -> CPU/IO stall -> transmission freeze).
+          # --mute-replay-warnings drops the log storm; --explicit-exit-notify makes
+          # OpenVPN tell PIA to tear down the session on shutdown so restarts don't overlap.
+          extraOpts: '--mute-replay-warnings --explicit-exit-notify 2'
           user:
             externalSecret:
               secretStoreRef:

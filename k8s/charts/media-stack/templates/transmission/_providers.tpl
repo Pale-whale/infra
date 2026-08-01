@@ -29,7 +29,7 @@
 - name: OPENVPN_PASSWORD
   value: {{ $.Values.transmission.provider.user.password | squote }}
 {{- end }}
-{{- if eq $.Values.transmission.provider.name "custom" }}
+{{- if or (eq $.Values.transmission.provider.name "custom") (eq $.Values.transmission.provider.name "PIA") }}
 - name: OPENVPN_CONFIG
   value: {{ $.Values.transmission.provider.endpoint | squote }}
 {{- end }}
@@ -63,7 +63,7 @@
 - name: UFW_EXTRA_PORTS
   value: {{ $.Values.transmission.firewall.extraPorts | squote }}
 - name: UFW_DISABLE_IPTABLES_REJECT
-  values {{ $.Values.transmission.firewall.disableReject | squote }}
+  value: {{ $.Values.transmission.firewall.disableReject | squote }}
 {{- end -}}
 
 {{- define "transmission.rpc-config" -}}
