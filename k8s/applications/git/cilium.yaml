@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:cilium/cilium.git
-    targetRevision: v1.18.2
+    targetRevision: v1.20.0
     path: install/kubernetes/cilium
   destination:
     server: https://kubernetes.default.svc
