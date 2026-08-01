@@ -3,7 +3,7 @@ app:
   project: media
   source:
     repoURL: git@github.com:nextcloud/helm.git
-    targetRevision: nextcloud-8.6.0
+    targetRevision: nextcloud-9.2.5
     path: charts/nextcloud
   destination:
     server: https://kubernetes.default.svc
