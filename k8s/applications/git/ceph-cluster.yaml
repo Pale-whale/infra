@@ -63,6 +63,16 @@ app:
         # Prioritise client IO and cap concurrent scrubs. Applied cluster-wide via
         # `ceph config set osd ...`.
         cephConfig:
+          # Point the Ceph dashboard at the in-cluster kube-prometheus-stack so its
+          # monitoring/performance panels render (otherwise the dashboard shows
+          # "Please consult the documentation on how to configure and enable the
+          # monitoring functionality."). These are the exact options that
+          # `ceph dashboard set-prometheus-api-host` writes (mgr/dashboard/*),
+          # applied here via Rook's cephConfig so the setting is GitOps-managed.
+          # SSL_VERIFY is false because the target is plain HTTP in-cluster.
+          mgr:
+            "mgr/dashboard/PROMETHEUS_API_HOST": "http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc:9090"
+            "mgr/dashboard/PROMETHEUS_API_SSL_VERIFY": "false"
           osd:
             osd_mclock_profile: "high_client_ops"
             osd_max_scrubs: "1"
