@@ -11,6 +11,12 @@ app:
   helm:
     values: |
       enableDiscoveryDaemon: true
+      # Grant the operator RBAC to manage ServiceMonitors. The cluster chart sets
+      # monitoring.enabled (creating the ServiceMonitors), but without this the
+      # operator SA lacks monitoring.coreos.com permissions and its monitoring
+      # reconcile fails in a tight loop ("cannot get resource servicemonitors").
+      monitoring:
+        enabled: true
       discover:
         nodeAffinity: 'node-role.kubernetes.io/ceph=true'
       provisionerNodeAffinity: 'node-role.kubernetes.io/ceph=true'
