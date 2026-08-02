@@ -10,6 +10,8 @@ app:
     namespace: kube-system
   helm:
     values: |
+      args:
+      - --kubelet-insecure-tls
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
