@@ -25,9 +25,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{- define "radarr.serviceAccountName" -}}
-{{- if .Values.transmission.serviceAccount.create }}
-{{- default (include "radarr.fullname" .) .Values.transmission.serviceAccount.name }}
+{{- if .Values.radarr.serviceAccount.create }}
+{{- default (include "radarr.fullname" .) .Values.radarr.serviceAccount.name }}
 {{- else }}
-{{- default "default" .Values.transmission.serviceAccount.name }}
+{{- default "default" .Values.radarr.serviceAccount.name }}
 {{- end }}
 {{- end }}

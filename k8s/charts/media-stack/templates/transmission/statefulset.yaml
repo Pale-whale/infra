@@ -43,6 +43,7 @@ spec:
           image: "{{ .Values.transmission.image.repository }}:{{ .Values.transmission.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.transmission.image.pullPolicy }}
           env: {{- include "transmission.provider-config" $ | nindent 10 -}}
+          {{- include "transmission.firewall-config" $ | nindent 10 }}
           {{- include "transmission.rpc-config" $ | nindent 10 }}
           - name: TZ
             value: {{ .Values.global.timezone | squote }}

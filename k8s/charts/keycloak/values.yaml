@@ -1,6 +1,7 @@
 keycloak:
   name: keycloak
   hostname: example.com
+  instances: 1
   
 database:
   enabled: true

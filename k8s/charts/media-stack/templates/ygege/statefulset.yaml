@@ -25,9 +25,14 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "ygege.serviceAccountName" . }}
       securityContext: {{- toYaml .Values.ygege.podSecurityContext | nindent 8 }}
-      dnsPolicy: "None"
+      {{- $dns := .Values.ygege.dns | default .Values.global.dns }}
+      {{- with $dns.policy }}
+      dnsPolicy: {{ . | quote }}
+      {{- end }}
+      {{- with $dns.config }}
       dnsConfig:
-        nameservers: {{- .Values.global.nameservers | toYaml | nindent 10 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: ygege
           securityContext:

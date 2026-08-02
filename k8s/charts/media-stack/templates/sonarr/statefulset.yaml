@@ -24,9 +24,14 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "sonarr.serviceAccountName" . }}
       securityContext: {{- toYaml .Values.sonarr.podSecurityContext | nindent 8 }}
-      dnsPolicy: "None"
+      {{- $dns := .Values.sonarr.dns | default .Values.global.dns }}
+      {{- with $dns.policy }}
+      dnsPolicy: {{ . | quote }}
+      {{- end }}
+      {{- with $dns.config }}
       dnsConfig:
-        nameservers: {{- .Values.global.nameservers | toYaml | nindent 10 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: sonarr
           securityContext:
