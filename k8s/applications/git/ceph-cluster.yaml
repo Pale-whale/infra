@@ -41,6 +41,15 @@ app:
         dashboard:
           enabled: true
           ssl: false
+          # Point the dashboard at the in-cluster kube-prometheus-stack so its
+          # native Prometheus-backed graphs render (otherwise the dashboard warns
+          # that monitoring is not configured). Rook's dashboard controller owns
+          # the mgr/dashboard/PROMETHEUS_API_* options and reconciles them from
+          # these fields, so they MUST be set here — setting them via cephConfig
+          # does not stick (the operator resets them on every dashboard reconcile).
+          # SSL verify is off because the target is plain HTTP in-cluster.
+          prometheusEndpoint: http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc:9090
+          prometheusEndpointSSLVerify: false
         network:
           connections:
             encryption:
@@ -63,16 +72,16 @@ app:
         # Prioritise client IO and cap concurrent scrubs. Applied cluster-wide via
         # `ceph config set osd ...`.
         cephConfig:
-          # Point the Ceph dashboard at the in-cluster kube-prometheus-stack so its
-          # monitoring/performance panels render (otherwise the dashboard shows
-          # "Please consult the documentation on how to configure and enable the
-          # monitoring functionality."). These are the exact options that
-          # `ceph dashboard set-prometheus-api-host` writes (mgr/dashboard/*),
-          # applied here via Rook's cephConfig so the setting is GitOps-managed.
-          # SSL_VERIFY is false because the target is plain HTTP in-cluster.
+          # GRAFANA_API_URL is the browser-reachable Grafana behind the dashboard's
+          # "Overall Performance" iframe embeds. Unlike the Prometheus endpoint (owned
+          # by Rook via dashboard.prometheusEndpoint above), Rook does NOT manage the
+          # mgr/dashboard/GRAFANA_* options, so cephConfig is durable here. SSL verify
+          # stays on (valid public cert); the mgr must not push dashboards since the
+          # Grafana chart provisions the ceph-mixin set.
           mgr:
-            "mgr/dashboard/PROMETHEUS_API_HOST": "http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc:9090"
-            "mgr/dashboard/PROMETHEUS_API_SSL_VERIFY": "false"
+            "mgr/dashboard/GRAFANA_API_URL": "https://grafana.palewhale.fr"
+            "mgr/dashboard/GRAFANA_API_SSL_VERIFY": "true"
+            "mgr/dashboard/GRAFANA_UPDATE_DASHBOARDS": "false"
           osd:
             osd_mclock_profile: "high_client_ops"
             osd_max_scrubs: "1"
