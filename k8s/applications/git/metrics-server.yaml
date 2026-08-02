@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:kubernetes-sigs/metrics-server.git
-    targetRevision: v0.8.0
+    targetRevision: v0.9.0
     path: charts/metrics-server
   destination:
     server: https://kubernetes.default.svc
