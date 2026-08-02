@@ -14,6 +14,48 @@ app:
         enabled: false
       grafana:
         defaultDashboardsTimezone: browser
+        # Provision the Ceph (ceph-mixin) Grafana dashboards that the Ceph dashboard
+        # embeds on its "Overall Performance" tabs. Their UIDs (e.g. host-details =
+        # rtOg0AiWz) are hardcoded in the Ceph dashboard, so we pull the exact JSONs
+        # pinned to the running Ceph version. They use the "default" datasource,
+        # which is this stack's Prometheus. Fetched by the grafana init container at
+        # pod start, so a Grafana restart needs outbound access to raw.githubusercontent.com.
+        dashboardProviders:
+          dashboardproviders.yaml:
+            apiVersion: 1
+            providers:
+              - name: ceph
+                orgId: 1
+                folder: Ceph
+                type: file
+                disableDeletion: false
+                editable: true
+                options:
+                  path: /var/lib/grafana/dashboards/ceph
+        dashboards:
+          ceph:
+            ceph-cluster:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/ceph-cluster.json
+            ceph-cluster-advanced:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/ceph-cluster-advanced.json
+            hosts-overview:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/hosts-overview.json
+            host-details:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/host-details.json
+            osds-overview:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/osds-overview.json
+            osd-device-details:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/osd-device-details.json
+            pool-overview:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/pool-overview.json
+            pool-detail:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/pool-detail.json
+            rbd-overview:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/rbd-overview.json
+            rbd-details:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/rbd-details.json
+            cephfs-overview:
+              url: https://raw.githubusercontent.com/ceph/ceph/v19.2.3/monitoring/ceph-mixin/dashboards_out/cephfs-overview.json
         ingress:
           enabled: true
           hosts:
@@ -26,6 +68,13 @@ app:
           server:
             root_url: https://grafana.palewhale.fr
             domain: grafana.palewhale.fr
+          security:
+            # Let the Ceph dashboard (ceph.palewhale.fr) embed Grafana panels in
+            # iframes on its "Overall Performance" tabs. Without this, Grafana sends
+            # X-Frame-Options: deny and the iframes stay blank. Both hosts are
+            # *.palewhale.fr (same-site), so the viewer's Keycloak SSO cookie flows
+            # into the iframe — no anonymous access is enabled (Grafana is public).
+            allow_embedding: true
           auth.generic_oauth:
             enabled: true
             name: Keycloak
