@@ -1,4 +1,9 @@
-devices: {}
+image:
+  repository: squat/generic-device-plugin
+  tag: "0.2.0"
+  pullPolicy: IfNotPresent
+
+devices: []
 #  - name: tun
 #    groups:
 #      - count: 1000

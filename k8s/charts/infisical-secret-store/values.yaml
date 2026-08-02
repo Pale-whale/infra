@@ -7,5 +7,5 @@ identityId:
   key: ''
 
 projectSlug: ''
-secretPath: '/'
+secretsPath: '/'
 hostAPI: ''

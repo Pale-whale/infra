@@ -4,8 +4,15 @@ global:
     uid: 1000
     gid: 1000
   
-  nameservers:
-    - 1.1.1.1
+  # Default pod DNS for the *arr / ygege apps. `policy` maps to Pod.spec.dnsPolicy
+  # and `config` to Pod.spec.dnsConfig. Each app can override this via its own
+  # `dns:` block (e.g. set `policy: ClusterFirst` to use cluster DNS, or add the
+  # cluster DNS server + search domains alongside 1.1.1.1).
+  dns:
+    policy: "None"
+    config:
+      nameservers:
+        - 1.1.1.1
   ingress:
     enabled: false
     className: ""
@@ -62,7 +69,7 @@ transmission:
   image:
     repository: haugene/transmission-openvpn
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: "5.4.2"
   
   imagePullSecrets: []
   
@@ -163,6 +170,9 @@ prowlarr:
     tag: 2.5.2
   imagePullSecrets: []
 
+  # Overrides global.dns for this app. Leave empty to inherit the global default.
+  dns: {}
+
   persistence:
     enabled: false
     accessModes: RWO
@@ -195,6 +205,9 @@ sonarr:
     pullPolicy: Always
   imagePullSecrets: []
 
+  # Overrides global.dns for this app. Leave empty to inherit the global default.
+  dns: {}
+
   persistence:
     enabled: false
     accessModes: RWO
@@ -226,6 +239,9 @@ radarr:
     tag: 6.3.0
   imagePullSecrets: []
 
+  # Overrides global.dns for this app. Leave empty to inherit the global default.
+  dns: {}
+
   persistence:
     enabled: false
     accessModes: RWO
@@ -253,10 +269,13 @@ radarr:
 
 ygege:
   image:
-    repository: ghcr.io/uwudev/ygege 
+    repository: ghcr.io/uwudev/ygege
     tag: master
     pullPolicy: Always
   imagePullSecrets: []
+
+  # Overrides global.dns for this app. Leave empty to inherit the global default.
+  dns: {}
 
   account:
     secretStoreRef:

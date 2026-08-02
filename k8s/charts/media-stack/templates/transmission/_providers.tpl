@@ -55,7 +55,7 @@
 {{- end }}
 {{- end }}
 
-{{- define "transmission.firewall-config" }}
+{{- define "transmission.firewall-config" -}}
 - name: ENABLE_UFW
   value: {{ $.Values.transmission.firewall.enable  | squote}}
 - name: UFW_ALLOW_GW_NET

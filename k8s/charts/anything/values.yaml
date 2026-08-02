@@ -1,0 +1,17 @@
+# The "anything" chart renders each top-level value verbatim as a manifest,
+# so real resources are supplied per-release (see the ArgoCD Application's
+# helm.values). This file only holds generic defaults/examples.
+{}
+# Example — a PersistentVolumeClaim:
+# pvc:
+#   apiVersion: v1
+#   kind: PersistentVolumeClaim
+#   metadata:
+#     name: example
+#   spec:
+#     storageClassName: ceph-block
+#     accessModes:
+#       - ReadWriteOnce
+#     resources:
+#       requests:
+#         storage: 1Gi
