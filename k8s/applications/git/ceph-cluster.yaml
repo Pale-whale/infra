@@ -58,8 +58,13 @@ app:
           connections:
             encryption:
               enabled: false
+            # Msgr compression is OFF on purpose. Every agent VM runs on the SAME
+            # physical Proxmox node (mother-brain), so OSD-to-OSD replication never
+            # leaves the host and there is no link to relieve. Enabling it only set
+            # `ms_osd_compress_mode force`, burning CPU on 4-core VMs to compress
+            # traffic that costs nothing to move.
             compression:
-              enabled: true
+              enabled: false
             requireMsgr2: true
         logCollector:
           enabled: true
@@ -67,14 +72,30 @@ app:
           maxLogSize: 500M
         skipUpgradeChecks: false
         continueUpgradeAfterChecksEvenIfNotHealthy: false
-        # OSDs are consumer WD SA500 SATA SSDs (no power-loss protection) passed
-        # via virtio, all on a single Proxmox node. Their O_DSYNC latency is fine
-        # at low queue depth but collapses (aio_wait seen up to ~6s) under
-        # concurrent background IO, freezing client-facing workloads. mclock's
-        # auto-benchmark also wildly overestimates their capacity (~56-77k IOPS),
-        # so the default 'balanced' profile let too much scrub/recovery IO through.
-        # Prioritise client IO and cap concurrent scrubs. Applied cluster-wide via
-        # `ceph config set osd ...`.
+        # OSD hardware (all consumer, none with power-loss protection), attached
+        # over virtio-scsi from the single Proxmox node mother-brain:
+        #   agent-milo   scsi2 -> Samsung 870 QVO 4TB   (QLC — see below)
+        #                scsi3 -> WD Red SA500 4TB      (TLC)
+        #                scsi4 -> WD Red SA500 4TB      (TLC)
+        #   agent-dewey  scsi2 -> Samsung 870 EVO 4TB   (TLC)
+        #                scsi3 -> WD Red SA500 4TB      (TLC)
+        #                scsi4 -> WD Red SA500 4TB      (TLC)
+        #   agent-rupert PCIe  -> Samsung 9100 PRO 8TB NVMe (PCIe passthrough)
+        #                scsi2 -> WD Red SA500 4TB      (TLC)
+        #
+        # Without PLP, O_DSYNC latency is fine at low queue depth but collapses
+        # under concurrent background IO, freezing client-facing workloads — hence
+        # high_client_ops and a single concurrent scrub.
+        #
+        # agent-milo scsi2 is the outlier: it is the only QLC drive, and it measures
+        # ~70ms kv_sync_lat against ~4-7ms for the TLC drives on identical VM config.
+        # QLC collapses once its SLC write cache is exhausted. No tuning fixes that —
+        # replacing the drive, or steering latency-critical pools off it with a
+        # separate device class, is the only real remedy.
+        #
+        # Note mclock's auto-benchmark overestimates these drives badly (it measured
+        # 56-77k IOPS); the per-OSD values are cleared and re-measured on an idle
+        # cluster rather than trusted blindly.
         cephConfig:
           # GRAFANA_API_URL is the browser-reachable Grafana behind the dashboard's
           # "Overall Performance" iframe embeds. Unlike the Prometheus endpoint (owned
@@ -89,6 +110,22 @@ app:
           osd:
             osd_mclock_profile: "high_client_ops"
             osd_max_scrubs: "1"
+            # BlueStore disables deferred writes for SSD-class devices by default
+            # (bluestore_prefer_deferred_size_ssd = 0), which is right for enterprise
+            # drives but wrong here: it sends every small random write straight to a
+            # PLP-less consumer SSD as O_DSYNC. Deferring sub-32K writes turns them
+            # into sequential RocksDB WAL appends flushed to the data area in batches.
+            # Tradeoff: small writes are written twice, costing endurance — most on
+            # the QLC drive. Revert this key alone if client latency gets worse.
+            bluestore_prefer_deferred_size_ssd: "32768"
+            # 5Gi, not the 4Gi compiled-in default: the OSD pods already reserve the
+            # memory, so without this ~2Gi/OSD was reserved but unusable. Capped at
+            # 5Gi rather than matching the 6Gi limit because osd_memory_target excludes
+            # ~15% expected fragmentation (a 6Gi target under a 6Gi cgroup limit would
+            # OOMKill), and because milo/dewey run THREE OSDs each against ~23.5Gi of
+            # allocatable RAM — 3x6Gi of real usage does not fit alongside everything
+            # else on the node.
+            osd_memory_target: "5368709120"
         placement:
           mon:
             nodeAffinity:
@@ -130,7 +167,13 @@ app:
               memory: "6Gi"
             requests:
               cpu: "1"
-              memory: "6Gi"
+              # Matches osd_memory_target above, so the reservation is honest rather
+              # than padding. The limit keeps ~20% headroom over the target for the
+              # fragmentation BlueStore's autotuner does not account for. Dropping
+              # from 6Gi frees 3Gi of requests on milo/dewey, which each run three
+              # OSDs and had been reserving 18Gi — enough to leave Prometheus
+              # unschedulable when the third disk was added.
+              memory: "5Gi"
         disruptionManagement:
           managePodBudgets: true
           osdMaintenanceTimeout: 30
@@ -145,16 +188,22 @@ app:
                   name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2"
                 - deviceClass: ssd
                   name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi3"
+                - deviceClass: ssd
+                  name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi4"
             - name: "agent-dewey"
               devices:
                 - deviceClass: ssd
                   name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2"
                 - deviceClass: ssd
                   name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi3"
+                - deviceClass: ssd
+                  name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi4"
             - name: "agent-rupert"
               devices:
                 - deviceClass: nvme
                   name: "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0Y903438J"
+                - deviceClass: ssd
+                  name: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2"
       ingress:
         dashboard:
           annotations:
