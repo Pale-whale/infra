@@ -19,7 +19,6 @@ app:
         enabled: true
       discover:
         nodeAffinity: 'node-role.kubernetes.io/ceph=true'
-      provisionerNodeAffinity: 'node-role.kubernetes.io/ceph=true'
       resources:
         limits:
           memory: 512Mi

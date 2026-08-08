@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:rook/rook.git
-    targetRevision: v1.19.6
+    targetRevision: v1.20.3
     path: deploy/charts/rook-ceph-cluster
   destination:
     server: https://kubernetes.default.svc
@@ -13,7 +13,11 @@ app:
       operatorNamespace: rook-ceph
       clusterName: homelab
       cephImage:
-        tag: v19.2.3
+        # Tentacle. v20.2.2 specifically, not v20.2.0: that release has a known
+        # data-corruption bug when the CSI "read affinity" feature is enabled.
+        # Rook 1.20.3 supports both Squid (19) and Tentacle (20) — minimum 19.2.0 —
+        # so this is a deliberate move, not one forced by the operator bump.
+        tag: v20.2.2
         allowUnsupported: false
       toolbox:
         enabled:
