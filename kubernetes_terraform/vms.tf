@@ -55,6 +55,8 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
     discard      = try(coalesce(each.value.disk.discard, var.default_disk.discard), null)
     ssd          = try(coalesce(each.value.disk.ssd, var.default_disk.ssd), null)
     iothread     = try(coalesce(each.value.disk.iothread, var.default_disk.iothread), null)
+    cache        = try(coalesce(each.value.disk.cache, var.default_disk.cache), null)
+    aio          = try(coalesce(each.value.disk.aio, var.default_disk.aio), null)
   }
 
   dynamic "disk" {
@@ -67,6 +69,8 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
       discard           = try(disk.value.discard, null)
       ssd               = try(disk.value.ssd, null)
       iothread          = try(disk.value.iothread, null)
+      cache             = try(disk.value.cache, null)
+      aio               = try(disk.value.aio, null)
       import_from       = try(disk.value.import_from, null)
       path_in_datastore = try(disk.value.path_in_datastore, null)
     }
@@ -143,6 +147,8 @@ resource "proxmox_virtual_environment_vm" "worker" {
     discard      = try(coalesce(each.value.disk.discard, var.default_disk.discard), null)
     ssd          = try(coalesce(each.value.disk.ssd, var.default_disk.ssd), null)
     iothread     = try(coalesce(each.value.disk.iothread, var.default_disk.iothread), null)
+    cache        = try(coalesce(each.value.disk.cache, var.default_disk.cache), null)
+    aio          = try(coalesce(each.value.disk.aio, var.default_disk.aio), null)
   }
 
   dynamic "disk" {
@@ -155,6 +161,8 @@ resource "proxmox_virtual_environment_vm" "worker" {
       discard           = try(disk.value.discard, null)
       ssd               = try(disk.value.ssd, null)
       iothread          = try(disk.value.iothread, null)
+      cache             = try(disk.value.cache, null)
+      aio               = try(disk.value.aio, null)
       import_from       = try(disk.value.import_from, null)
       path_in_datastore = try(disk.value.path_in_datastore, null)
     }
