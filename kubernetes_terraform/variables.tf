@@ -200,6 +200,8 @@ variable "default_disk" {
     ssd          = optional(bool)
     discard      = optional(string)
     iothread     = optional(bool)
+    cache        = optional(string)
+    aio          = optional(string)
   })
   default = {}
 }
@@ -238,6 +240,8 @@ variable "topology" {
         ssd          = optional(bool)
         discard      = optional(string)
         iothread     = optional(bool)
+        cache        = optional(string)
+        aio          = optional(string)
       }), {})
       additional_disks = optional(map(object({
         datastore_id      = optional(string)
@@ -247,6 +251,8 @@ variable "topology" {
         discard           = optional(string)
         iothread          = optional(bool)
         ssd               = optional(bool)
+        cache             = optional(string)
+        aio               = optional(string)
         import_from       = optional(string)
         path_in_datastore = optional(string)
       })), {})
@@ -278,6 +284,8 @@ variable "topology" {
         ssd          = optional(bool)
         discard      = optional(string)
         iothread     = optional(bool)
+        cache        = optional(string)
+        aio          = optional(string)
       }), {})
       additional_disks = optional(map(object({
         datastore_id      = optional(string)
@@ -287,6 +295,8 @@ variable "topology" {
         discard           = optional(string)
         iothread          = optional(bool)
         ssd               = optional(bool)
+        cache             = optional(string)
+        aio               = optional(string)
         import_from       = optional(string)
         path_in_datastore = optional(string)
       })), {})
