@@ -63,21 +63,10 @@ app:
         service:
           local:
             enabled: true
-            # No `name:` here. bjw-s common 5.x rejects service.<id>.name outright
-            # (the chart's values.schema.json refs the common-5.0.1 schema, where
-            # the property is a `false` schema), and it was redundant anyway: the
-            # `local` identifier already yields immich-server-local, which is the
-            # name the live LoadBalancer on 172.17.69.9 already has.
             controller: main
             primary: false
             type: LoadBalancer
             loadBalancerIP: 172.17.69.9
-            ports:
-              http:
-                enabled: true
-                port: 2283
-                targetPort: http
-                protocol: HTTP
         serviceMonitor:
           main:
             service:
