@@ -1,0 +1,50 @@
+app:
+  name: ceph-csi-drivers
+  project: infra
+  source:
+    repoURL: https://ceph.github.io/ceph-csi-operator
+    chart: ceph-csi-drivers
+    targetRevision: 1.0.4
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rook-ceph
+  helm:
+    values: |
+      # NEW REQUIREMENT IN ROOK v1.20. Rook no longer deploys the CSI drivers --
+      # the ceph-csi-operator owns them, and the rook-ceph chart ships only the
+      # operator itself. Without this chart the CSI driver lands in a failed state
+      # with "serviceaccount \"rbd-ctrlplugin-sa\" not found", because the Driver
+      # CRs carry no serviceAccountName and the operator falls back to a derived
+      # name that nothing creates. This chart creates the four ServiceAccounts plus
+      # their RBAC, and pins serviceAccountName on the Driver CRs to match.
+      #
+      # Chart version tracks the ceph-csi-operator version that rook-ceph v1.20.3
+      # pins as its subchart dependency (1.0.4) -- keep the two in step on upgrade.
+      #
+      # Values below are Rook's own recommended defaults, copied verbatim from
+      # deploy/charts/ceph-csi-drivers/values.yaml in the rook v1.20.3 tree. The
+      # driver names MUST stay prefixed with the operator namespace, because they
+      # are the provisioner names already baked into every StorageClass
+      # (ceph-block, ceph-filesystem) and into existing PVs.
+      operatorConfig:
+        namespace: rook-ceph # namespace:operator
+        driverSpecDefaults:
+          imageSet:
+            name: rook-csi-operator-image-set-configmap
+          nodePlugin:
+            priorityClassName: system-node-critical
+          controllerPlugin:
+            priorityClassName: system-cluster-critical
+      drivers:
+        rbd:
+          enabled: true
+          name: rook-ceph.rbd.csi.ceph.com # csi-provisioner-name
+        cephfs:
+          enabled: true
+          name: rook-ceph.cephfs.csi.ceph.com # csi-provisioner-name
+        nfs:
+          enabled: false
+          name: rook-ceph.nfs.csi.ceph.com # csi-provisioner-name
+        nvmeof:
+          enabled: false
+          name: rook-ceph.nvmeof.csi.ceph.com # csi-provisioner-name
