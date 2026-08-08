@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:rook/rook.git
-    targetRevision: v1.19.6
+    targetRevision: v1.20.3
     path: deploy/charts/rook-ceph
   destination:
     server: https://kubernetes.default.svc
@@ -19,7 +19,13 @@ app:
         enabled: true
       discover:
         nodeAffinity: 'node-role.kubernetes.io/ceph=true'
-      provisionerNodeAffinity: 'node-role.kubernetes.io/ceph=true'
+      # NOTE: there was a top-level `provisionerNodeAffinity` here. It never did
+      # anything — the chart reads that key from under `csi:`, so at the top level
+      # it was silently dropped (verified: it renders zero occurrences of
+      # CSI_PROVISIONER_NODE_AFFINITY, whereas csi.provisionerNodeAffinity renders
+      # one). v1.20.3 removes the key from the chart entirely, because Rook no
+      # longer deploys the CSI drivers at all — the ceph-csi-operator owns them,
+      # and provisioner placement is now set on the drivers.csi.ceph.io CRs.
       resources:
         limits:
           memory: 512Mi
