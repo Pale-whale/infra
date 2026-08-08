@@ -63,7 +63,11 @@ app:
         service:
           local:
             enabled: true
-            name: local
+            # No `name:` here. bjw-s common 5.x rejects service.<id>.name outright
+            # (the chart's values.schema.json refs the common-5.0.1 schema, where
+            # the property is a `false` schema), and it was redundant anyway: the
+            # `local` identifier already yields immich-server-local, which is the
+            # name the live LoadBalancer on 172.17.69.9 already has.
             controller: main
             primary: false
             type: LoadBalancer
@@ -107,6 +111,20 @@ app:
                         operator: Exists
             containers:
               main:
+                image:
+                  # OpenVINO build, for the Intel iGPU passed through to
+                  # agent-lubrique (hostpci 0000:00:02 on a Core Ultra 9 285K).
+                  # The rest of the acceleration wiring was already here -- the
+                  # /dev/dri hostPath below, SYS_ADMIN, and the video nodeAffinity
+                  # above -- but the chart has no hwaccel switch, so the plain
+                  # CPU image was being used and the iGPU sat idle.
+                  #
+                  # MUST be bumped in lockstep with the chart's appVersion. The
+                  # chart leaves the tag unset so it inherits appVersion (v3.0.0
+                  # for chart 0.13.1); pinning it here breaks that link, so a
+                  # later chart bump would move immich-server while leaving ML
+                  # behind. Immich requires the two versions to match.
+                  tag: v3.0.0-openvino
                 securityContext:
                   capabilities:
                     add:
