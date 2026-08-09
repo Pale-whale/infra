@@ -18,9 +18,38 @@ app:
             - matchExpressions:
               - key: node-role.kubernetes.io/control-plane
                 operator: Exists
+      # NOTE: these top-level keys apply to the CONTROLLER deployment only, which is
+      # why the controller schedules onto a control-plane node. They do NOT reach the
+      # node-plugin DaemonSet -- that reads node.affinity / node.tolerations below.
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           effect: NoSchedule
+      node:
+        # The node plugin MUST run on control-plane nodes. The Ceph mons live there
+        # (cephClusterSpec.placement pins them to control-plane) and their PVCs use the
+        # proxmox-nvme-xfs StorageClass, so without a registered CSI driver on the node
+        # the mon cannot mount its volume:
+        #   MountVolume.MountDevice failed ... driver name csi.proxmox.sinextra.dev
+        #   not found in the list of registered CSI drivers
+        # This was latent: the DaemonSet was 5 desired across 8 nodes and had never
+        # scheduled on a master, but the existing mounts survived pod restarts, so it
+        # only surfaced when master-baiter was rebooted and mon.d could not remount.
+        #
+        # Setting node.tolerations REPLACES the chart defaults, so the three upstream
+        # entries are repeated here alongside the control-plane one.
+        tolerations:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+            effect: NoSchedule
+          - key: karpenter.sh/disrupted
+            operator: Exists
+            effect: NoSchedule
+          - key: node.kubernetes.io/unschedulable
+            operator: Exists
+            effect: NoSchedule
+          - key: node.kubernetes.io/disk-pressure
+            operator: Exists
+            effect: NoSchedule
       storageClass:
         - name: proxmox-local-xfs
           storage: local-lvm
