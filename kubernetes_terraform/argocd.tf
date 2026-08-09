@@ -1,19 +1,28 @@
 resource "tls_private_key" "argocd" {
-  count = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
+  # Bootstrap-only: the tls provider has no import support, so any apply would
+  # generate a NEW keypair and rotate ArgoCD's git SSH credentials.
+  count = var.deploy_argocd && var.argocd_private_repo.enabled && var.bootstrap_phase ? 1 : 0
 
   algorithm = var.argocd_private_repo.key_algorithm
 }
 
 resource "github_user_ssh_key" "argocd" {
-  count = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
+  # Bootstrap-only: follows tls_private_key.argocd above.
+  count = var.deploy_argocd && var.argocd_private_repo.enabled && var.bootstrap_phase ? 1 : 0
 
   title = var.argocd_private_repo.key_name
   key   = tls_private_key.argocd[0].public_key_openssh
 }
 
 resource "helm_release" "argocd_bootstrap" {
+  # Phase 1 of the two-phase install: it exists purely so the argo-cd CRDs are
+  # established before argocd_extra_objects creates AppProject/Application CRs in
+  # the same chart (argo-cd ships its CRDs as ordinary templates/crds/, not in a
+  # crds/ dir, so a single-pass install races establishment). It shares the
+  # argocd/argocd release name with argocd_extra_objects, which owns the release
+  # in state -- so this must not exist outside a greenfield build.
   depends_on = [data.talos_cluster_health.health]
-  count      = var.deploy_argocd ? 1 : 0
+  count      = var.deploy_argocd && var.bootstrap_phase ? 1 : 0
 
   name             = "argocd"
   namespace        = "argocd"
@@ -43,8 +52,9 @@ resource "helm_release" "argocd_extra_objects" {
 }
 
 resource "kubernetes_secret" "argocd_repo" {
+  # Bootstrap-only: carries tls_private_key.argocd's private key.
   depends_on = [helm_release.argocd_bootstrap]
-  count      = var.deploy_argocd && var.argocd_private_repo.enabled ? 1 : 0
+  count      = var.deploy_argocd && var.argocd_private_repo.enabled && var.bootstrap_phase ? 1 : 0
 
   metadata {
     name      = var.argocd_private_repo.repo_name

@@ -1,5 +1,14 @@
 resource "talos_machine_secrets" "machine_secrets" {
   talos_version = var.talos_version
+
+  # This holds the entire cluster PKI: Talos CA, Kubernetes CA, etcd CA, aggregator
+  # CA, service-account key and the bootstrap/trustd tokens. Destroying and letting
+  # Terraform regenerate it would issue brand-new CAs, and every downstream resource
+  # would then push configs signed by a foreign CA to the running nodes. That is
+  # cluster-destroying, not drift. Imported from secrets.yaml; keep it that way.
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 data "talos_client_configuration" "homelab" {

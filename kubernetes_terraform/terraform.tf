@@ -1,4 +1,18 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NEVER run `terraform apply` without -target against this module.
+#
+# Ten resources in this configuration cannot be imported (the talos provider
+# implements ImportState on only machine_secrets and machine_bootstrap):
+#   talos_machine_configuration_apply.{controlplane,worker}  x8
+#   talos_cluster_kubeconfig.kubeconfig
+#   talos_image_factory_schematic.this
+# They will therefore ALWAYS show as "to create" against the live cluster. An
+# untargeted apply would re-push machine configuration to all eight running
+# nodes. The plan is expected to be non-empty forever; that is not drift.
+# ─────────────────────────────────────────────────────────────────────────────
 terraform {
+  required_version = ">= 1.5"
+
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
@@ -28,8 +42,9 @@ terraform {
 }
 
 provider "proxmox" {
-  endpoint = "https://192.168.1.69:8006/"
-  insecure = true # Only needed if your Proxmox server is using a self-signed certificate
+  endpoint  = "https://192.168.20.3:8006/"
+  insecure  = true # Only needed if your Proxmox server is using a self-signed certificate
+  api_token = var.proxmox_token
 }
 
 provider "talos" {}

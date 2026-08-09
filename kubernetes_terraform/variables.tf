@@ -1,3 +1,26 @@
+variable "proxmox_token" {
+  type      = string
+  sensitive = true
+}
+
+variable "bootstrap_phase" {
+  description = <<-EOT
+    True ONLY for an initial greenfield build. Gates the one-shot bootstrap resources
+    that cannot be imported and must not exist in steady state:
+      - helm_release.argocd_bootstrap  (phase 1 of the two-phase ArgoCD install; it
+        shares the argocd/argocd release name with argocd_extra_objects, and one live
+        release cannot be owned by two Terraform addresses)
+      - tls_private_key.argocd         (the tls provider has no import support at all,
+        so any apply would rotate ArgoCD's git SSH key)
+      - github_user_ssh_key.argocd     (moot once the key above is regenerated)
+      - kubernetes_secret.argocd_repo  (carries that private key)
+    Leaving this false keeps them out of state, so the live ArgoCD repo credentials are
+    never touched, while a rebuild still works by flipping it true for the first apply.
+  EOT
+  type        = bool
+  default     = false
+}
+
 variable "cluster_name" {
   type = string
 }

@@ -31,4 +31,5 @@ sensitive.*.tfvars
 .terraformrc
 terraform.rc
 
-.terraform.lock.hcl
+# .terraform.lock.hcl is deliberately NOT ignored -- it pins provider versions
+# and hashes, which is the whole point of committing it.

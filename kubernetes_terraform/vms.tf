@@ -84,6 +84,11 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
       password = var.default_user_account.password
     }
   }
+
+  # These are live control-plane nodes. Nothing in this module protected them before.
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "proxmox_virtual_environment_vm" "worker" {
@@ -188,5 +193,12 @@ resource "proxmox_virtual_environment_vm" "worker" {
       id     = try(hostpci.value.id, null)
       pcie   = try(hostpci.value.pcie, null)
     }
+  }
+
+  # agent-milo, agent-dewey and agent-rupert carry raw passthrough disks that are
+  # live Ceph OSDs. A destroy or disk replace here is unrecoverable data loss, so
+  # the guard matters more on the workers than anywhere else in this module.
+  lifecycle {
+    prevent_destroy = true
   }
 }
