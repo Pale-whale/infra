@@ -1,6 +1,9 @@
+localASN: 64513
+
 peer:
   name: peer
-  address: '10.0.0.254'
+  address: '10.0.0.1'
+  asn: 64512
 
 loadBalancerPool:
   spec:

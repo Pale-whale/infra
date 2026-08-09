@@ -10,6 +10,13 @@ app:
     namespace: kube-system
   helm:
     values: |
+      # Codified from the running session, which had drifted from git:
+      #   live  localASN 64513 -> peerASN 64512 @ 10.0.0.1  (eBGP, established)
+      #   git   localASN 64512 -> peerASN 64512 @ 10.0.0.254 (iBGP, wrong)
+      # Syncing the old values would have torn down the session and withdrawn
+      # the LoadBalancer advertisements (e.g. 172.17.69.9).
+      localASN: 64513
       peer:
         name: opnsense
-        address: '10.0.0.254'
+        address: '10.0.0.1'
+        asn: 64512
