@@ -2,8 +2,6 @@ localASN: 64513
 
 peer:
   name: peer
-  # OPNsense. Note this is NOT the default gateway (10.0.0.254) — the router
-  # answers BGP on a different address.
   address: '10.0.0.1'
   asn: 64512
 
