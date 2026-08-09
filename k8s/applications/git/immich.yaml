@@ -67,6 +67,12 @@ app:
             primary: false
             type: LoadBalancer
             loadBalancerIP: 172.17.69.9
+            ports:
+              http:
+                enabled: true
+                port: 2283
+                targetPort: http
+                protocol: HTTP
         serviceMonitor:
           main:
             service:
