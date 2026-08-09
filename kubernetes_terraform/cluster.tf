@@ -1,5 +1,19 @@
 resource "talos_machine_secrets" "machine_secrets" {
   talos_version = var.talos_version
+
+  # This holds the entire cluster PKI: Talos CA, Kubernetes CA, etcd CA, aggregator
+  # CA, service-account key and the bootstrap/trustd tokens. Destroying and letting
+  # Terraform regenerate it would issue brand-new CAs, and every downstream resource
+  # would then push configs signed by a foreign CA to the running nodes. That is
+  # cluster-destroying, not drift.
+  #
+  # Imported from secrets.yaml, and nothing about it should ever change. The import
+  # records talos_version as "v1.3" against the config's "v1.11.3", which would
+  # otherwise show as a permanent update on the resource holding the cluster PKI.
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = all
+  }
 }
 
 data "talos_client_configuration" "homelab" {
@@ -84,7 +98,14 @@ data "talos_machine_configuration" "workers" {
 }
 
 resource "talos_machine_configuration_apply" "worker" {
-  depends_on                  = [proxmox_virtual_environment_vm.worker, talos_machine_configuration_apply.controlplane]
+  # Deliberately NOT depends_on talos_machine_configuration_apply.controlplane.
+  # depends_on references the whole resource, so naming it dragged all three control
+  # plane instances into the graph of any targeted worker operation -- there was no
+  # -target combination that could touch one worker without also re-applying config to
+  # every master. Talos tolerates a worker being configured before the control plane is
+  # reachable (it retries), so the ordering this bought was not worth losing the ability
+  # to act on one node at a time.
+  depends_on                  = [proxmox_virtual_environment_vm.worker]
   for_each                    = local.workers
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration

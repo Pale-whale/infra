@@ -1,7 +1,11 @@
 cluster_name = "homelab"
 
-talos_version      = "v1.11.3"
-kubernetes_version = "v1.34.1"
+# Live: nodes report Talos v1.13.0 (upgraded in place since install).
+talos_version = "v1.13.0"
+# Live: kubelet and all control-plane components run v1.35.4. This is baked into
+# the machine config as pinned image tags -- v1.34.1 here meant any
+# machine_configuration_apply would have downgraded Kubernetes.
+kubernetes_version = "v1.35.4"
 
 extra_talos_filters = [
   "i915"
@@ -21,23 +25,33 @@ deploy_argocd      = true
 
 default_proxmox_node = "mother-brain"
 
-default_machine             = "q35"
-default_controlplane_cpu    = 2
-default_controlplane_memory = 4096
+default_machine = "q35"
+# Codified from live: every VM reports 6 cores; the masters run 6144 MiB.
+default_controlplane_cpu    = 6
+default_controlplane_memory = 6144
 
+# Codified from the imported state. The VMs sit on vmbr0 -- the VLAN-aware bridge
+# that owns the physical uplink (enp134s0f0np0) -- tagged into VLAN 30. The previous
+# value, vmbr1, is an isolated internal bridge with no ports at 192.168.88.1/24:
+# applying it would have moved every node onto a network with no uplink.
 default_network_device = {
-  bridge = "vmbr1"
-  model  = "virtio"
+  bridge  = "vmbr0"
+  model   = "virtio"
+  vlan_id = 30
 }
 
+# Boot disks live on the nvme-vm datastore, not local-lvm, and carry an explicit
+# cache/aio. Codified from the imported state.
 default_disk = {
-  datastore_id = "local-lvm"
+  datastore_id = "nvme-vm"
   file_format  = "raw"
   interface    = "scsi1"
   size         = 20
   ssd          = true
   iothread     = true
   discard      = "on"
+  cache        = "none"
+  aio          = "io_uring"
 }
 
 default_cloud_init_datastore = "local-lvm"
@@ -80,18 +94,24 @@ topology = {
       ip     = "10.60.0.1"
       cpu    = 6
       memory = 16384
+      disk = {
+        size = 42
+      }
       network_device = {
         mac_address = "bc:24:11:96:d2:de"
       }
       usb = [{
-        host = "10c4:ea60"
+        host = "3-2" # live: Proxmox stores the bus-port form, not vendor:product
       }]
     }
     agent-milo = {
       vm_id  = 150
       ip     = "10.60.1.1"
-      cpu    = 4
-      memory = 20480
+      cpu    = 6
+      memory = 24576
+      disk = {
+        size = 42
+      }
       network_device = {
         mac_address = "bc:24:11:94:6d:46"
       }
@@ -104,6 +124,32 @@ topology = {
           discard           = "on"
           ssd               = true
           iothread          = true
+          cache             = "writeback"
+          aio               = "io_uring"
+          size              = 3726
+        }
+        ceph-scsi3 = {
+          datastore_id      = ""
+          path_in_datastore = "/dev/disk/by-id/ata-WD_Red_SA500_2.5_4TB_2552Q8D01234"
+          file_format       = "raw"
+          interface         = "scsi3"
+          discard           = "on"
+          ssd               = true
+          iothread          = true
+          cache             = "writeback"
+          aio               = "io_uring"
+          size              = 3726
+        }
+        ceph-scsi4 = {
+          datastore_id      = ""
+          path_in_datastore = "/dev/disk/by-id/ata-WD_Red_SA500_2.5_4TB_2538PRD00103"
+          file_format       = "raw"
+          interface         = "scsi4"
+          discard           = "on"
+          ssd               = true
+          iothread          = true
+          cache             = "writeback"
+          aio               = "io_uring"
           size              = 3726
         }
       }
@@ -111,8 +157,11 @@ topology = {
     agent-dewey = {
       vm_id  = 151
       ip     = "10.60.1.2"
-      cpu    = 4
-      memory = 20480
+      cpu    = 6
+      memory = 24576
+      disk = {
+        size = 42
+      }
       network_device = {
         mac_address = "bc:24:11:c4:d7:f1"
       }
@@ -125,6 +174,32 @@ topology = {
           discard           = "on"
           ssd               = true
           iothread          = true
+          cache             = "writeback"
+          aio               = "io_uring"
+          size              = 3726
+        }
+        ceph-scsi3 = {
+          datastore_id      = ""
+          path_in_datastore = "/dev/disk/by-id/ata-WD_Red_SA500_2.5_4TB_25445KD00296"
+          file_format       = "raw"
+          interface         = "scsi3"
+          discard           = "on"
+          ssd               = true
+          iothread          = true
+          cache             = "writeback"
+          aio               = "io_uring"
+          size              = 3726
+        }
+        ceph-scsi4 = {
+          datastore_id      = ""
+          path_in_datastore = "/dev/disk/by-id/ata-WD_Red_SA500_2.5_4TB_2538PRD00091"
+          file_format       = "raw"
+          interface         = "scsi4"
+          discard           = "on"
+          ssd               = true
+          iothread          = true
+          cache             = "writeback"
+          aio               = "io_uring"
           size              = 3726
         }
       }
@@ -132,14 +207,31 @@ topology = {
     agent-rupert = {
       vm_id  = 152
       ip     = "10.60.1.3"
-      cpu    = 4
+      cpu    = 6
       memory = 20480
+      disk = {
+        size = 42
+      }
       network_device = {
         mac_address = "bc:24:11:be:af:af"
       }
+      additional_disks = {
+        ceph-scsi2 = {
+          datastore_id      = ""
+          path_in_datastore = "/dev/disk/by-id/ata-WD_Red_SA500_2.5_4TB_2538PRD00245"
+          file_format       = "raw"
+          interface         = "scsi2"
+          discard           = "on"
+          ssd               = true
+          iothread          = true
+          cache             = "writeback"
+          aio               = "io_uring"
+          size              = 3726
+        }
+      }
       hostpci = [{
         device = "hostpci0"
-        id     = "01:00.0"
+        id     = "0000:87:00.0" # live PCI address of the NVMe
         pcie   = true
       }]
     }
@@ -147,8 +239,11 @@ topology = {
       vm_id  = 200
       ip     = "10.60.2.1"
       cpu    = 6
-      memory = 8192
-      vga    = "serial0"
+      memory = 16384
+      disk = {
+        size = 42
+      }
+      vga = "serial0"
       network_device = {
         mac_address = "bc:24:11:82:d1:2d"
       }
@@ -203,7 +298,7 @@ argocd_extra_applications = {
     target_revision = "HEAD"
     path            = "k8s/root_app"
     value_files     = []
-    values          = {
+    values = {
       repository = {
         url = "git@github.com:pale-whale/infra.git"
       }

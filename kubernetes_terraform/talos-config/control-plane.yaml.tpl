@@ -20,10 +20,12 @@ machine:
 
 cluster:
   externalCloudProvider:
+    # No manifests here on purpose. Talos used to bootstrap the Proxmox CCM and CSI
+    # plugin from upstream URLs, but both are ArgoCD applications now
+    # (k8s/applications/git/proxmox-ccm.yaml, proxmox-csi.yaml). Leaving them here
+    # means Talos re-applies upstream manifests over what ArgoCD manages, and pins
+    # them to whatever main happens to be that day.
     enabled: true
-    manifests:
-      - https://raw.githubusercontent.com/sergelogvinov/proxmox-cloud-controller-manager/main/docs/deploy/cloud-controller-manager.yml
-      - https://raw.githubusercontent.com/sergelogvinov/proxmox-csi-plugin/main/docs/deploy/proxmox-csi-plugin.yml
   network:
     podSubnets:
       - ${pod_subnet}

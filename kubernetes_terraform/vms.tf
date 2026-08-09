@@ -15,7 +15,7 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
 
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
-    type  = "x86-64-v2-AES"
+    type  = "host" # matches live; every VM reports host
   }
 
   memory {
@@ -88,6 +88,19 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
       password = var.default_user_account.password
     }
   }
+
+  # These are live control-plane nodes. Nothing in this module protected them before.
+  lifecycle {
+    prevent_destroy = true
+
+    # disk: proxmox-csi-plugin attaches and detaches PVC volumes on these VMs at
+    # runtime (the mon volumes show up as a second scsi disk, vm-9999-pvc-*). Terraform
+    # only ever knows about the boot disk, so without this it plans to detach them.
+    # The disk blocks below remain the source of truth for a greenfield build.
+    # initialization: the cloud-init password is write-only in the Proxmox API, so it
+    # can never read back and diffs forever.
+    ignore_changes = [disk, initialization]
+  }
 }
 
 resource "proxmox_virtual_environment_vm" "worker" {
@@ -107,7 +120,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
 
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
-    type  = "x86-64-v2-AES"
+    type  = "host" # matches live; every VM reports host
   }
 
   memory {
@@ -196,5 +209,17 @@ resource "proxmox_virtual_environment_vm" "worker" {
       id     = try(hostpci.value.id, null)
       pcie   = try(hostpci.value.pcie, null)
     }
+  }
+
+  # agent-milo, agent-dewey and agent-rupert carry raw passthrough disks that are
+  # live Ceph OSDs. A destroy or disk replace here is unrecoverable data loss, so
+  # the guard matters more on the workers than anywhere else in this module.
+  lifecycle {
+    prevent_destroy = true
+
+    # Same reasoning as the control plane, plus: these disk entries are physical
+    # passthrough devices. Terraform should describe them for a rebuild but must never
+    # reconcile them against a running cluster.
+    ignore_changes = [disk, initialization]
   }
 }

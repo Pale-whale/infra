@@ -1,10 +1,46 @@
+variable "proxmox_token" {
+  type      = string
+  sensitive = true
+}
+
+variable "kubeconfig_path" {
+  description = <<-EOT
+    Kubeconfig used by the kubernetes and helm providers. These deliberately do NOT
+    derive credentials from talos_cluster_kubeconfig: that resource is not importable,
+    so referencing it makes provider configuration unresolvable and blocks `terraform
+    import` entirely. The context is pinned to var.cluster_name.
+  EOT
+  type        = string
+  default     = "~/.kube/config"
+}
+
+variable "bootstrap_phase" {
+  description = <<-EOT
+    True ONLY for an initial greenfield build. Gates the one-shot bootstrap resources
+    that cannot be imported and must not exist in steady state:
+      - helm_release.argocd_bootstrap  (phase 1 of the two-phase ArgoCD install; it
+        shares the argocd/argocd release name with argocd_extra_objects, and one live
+        release cannot be owned by two Terraform addresses)
+      - tls_private_key.argocd         (the tls provider has no import support at all,
+        so any apply would rotate ArgoCD's git SSH key)
+      - github_user_ssh_key.argocd     (moot once the key above is regenerated)
+      - kubernetes_secret.argocd_repo  (carries that private key)
+    Leaving this false keeps them out of state, so the live ArgoCD repo credentials are
+    never touched, while a rebuild still works by flipping it true for the first apply.
+  EOT
+  type        = bool
+  default     = false
+}
+
 variable "cluster_name" {
   type = string
 }
 
 variable "talos_version" {
+  # Live: the nodes report Talos v1.13.0. They were upgraded in place after install,
+  # so this trailed reality. It feeds the machine config AND the nocloud image name.
   type    = string
-  default = "v1.11.3"
+  default = "v1.13.0"
 }
 
 variable "talos_schematic" {
@@ -17,8 +53,11 @@ variable "extra_talos_filters" {
 }
 
 variable "kubernetes_version" {
+  # Live: kubelet and the control-plane components all run v1.35.4. This value is
+  # baked into the machine config as pinned image tags, so leaving it at v1.34.1
+  # meant any machine_configuration_apply would have DOWNGRADED Kubernetes.
   type    = string
-  default = "v1.34.1"
+  default = "v1.35.4"
 }
 
 variable "default_gateway" {
@@ -50,8 +89,9 @@ variable "deploy_cilium_cni" {
 }
 
 variable "cilium_version" {
+  # Live: ArgoCD runs v1.20.0. Only used for a greenfield bootstrap install now.
   type    = string
-  default = "1.18.2"
+  default = "1.20.0"
 }
 
 variable "deploy_argocd" {
@@ -60,8 +100,9 @@ variable "deploy_argocd" {
 }
 
 variable "argocd_version" {
+  # Live: the argocd Application tracks chart argo-cd 9.5.13. Bootstrap-only.
   type    = string
-  default = "v9.0.6"
+  default = "9.5.13"
 }
 
 variable "argocd_private_repo" {
