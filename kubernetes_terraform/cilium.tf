@@ -1,6 +1,12 @@
 data "talos_cluster_health" "kubeapi_up" {
   depends_on = [talos_machine_bootstrap.bootstrap]
-  count      = var.deploy_cilium_cni ? 1 : 0
+  # Bootstrap-only, same as the other one-shot resources. Holding this in state is
+  # actively unsafe: `terraform import` records neither `repository` nor `values`, so
+  # a plan shows a harmless-looking repository diff while an apply would run
+  # `helm upgrade` with values=null -- i.e. re-render the chart with pure defaults over
+  # what ArgoCD manages. ignore_changes hides that rather than preventing it.
+  # ArgoCD owns these workloads now; Terraform only needs them for a greenfield build.
+  count = var.deploy_cilium_cni && var.bootstrap_phase ? 1 : 0
 
   client_configuration   = data.talos_client_configuration.homelab.client_configuration
   control_plane_nodes    = [for n in local.controlplane : n.ip]
@@ -11,7 +17,13 @@ data "talos_cluster_health" "kubeapi_up" {
 
 resource "helm_release" "cilium" {
   depends_on = [data.talos_cluster_health.kubeapi_up]
-  count      = var.deploy_cilium_cni ? 1 : 0
+  # Bootstrap-only, same as the other one-shot resources. Holding this in state is
+  # actively unsafe: `terraform import` records neither `repository` nor `values`, so
+  # a plan shows a harmless-looking repository diff while an apply would run
+  # `helm upgrade` with values=null -- i.e. re-render the chart with pure defaults over
+  # what ArgoCD manages. ignore_changes hides that rather than preventing it.
+  # ArgoCD owns these workloads now; Terraform only needs them for a greenfield build.
+  count = var.deploy_cilium_cni && var.bootstrap_phase ? 1 : 0
 
   name            = "cilium"
   namespace       = "kube-system"
@@ -32,13 +44,5 @@ resource "helm_release" "cilium" {
   # running pods are far newer, applied by ArgoCD as plain manifests that Helm never
   # saw. Freezing keeps a future version bump here from stamping an older chart over
   # what ArgoCD manages, while a greenfield create still uses the config.
-  lifecycle {
-    # NOT `all`: that also freezes `repository` at the null the import leaves behind,
-    # and the provider then cannot resolve the chart ("non-absolute URLs should be in
-    # form of repo_name/path_to_chart"). Freeze only what actually drifts.
-    ignore_changes = [version, values, create_namespace, upgrade_install]
-
-    prevent_destroy = true
-  }
 
 }

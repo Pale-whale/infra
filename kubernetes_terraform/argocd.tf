@@ -35,7 +35,13 @@ resource "helm_release" "argocd_bootstrap" {
 
 resource "helm_release" "argocd_extra_objects" {
   depends_on = [helm_release.argocd_bootstrap]
-  count      = var.deploy_argocd ? 1 : 0
+  # Bootstrap-only, same as the other one-shot resources. Holding this in state is
+  # actively unsafe: `terraform import` records neither `repository` nor `values`, so
+  # a plan shows a harmless-looking repository diff while an apply would run
+  # `helm upgrade` with values=null -- i.e. re-render the chart with pure defaults over
+  # what ArgoCD manages. ignore_changes hides that rather than preventing it.
+  # ArgoCD owns these workloads now; Terraform only needs them for a greenfield build.
+  count = var.deploy_argocd && var.bootstrap_phase ? 1 : 0
 
   name             = "argocd"
   namespace        = "argocd"
@@ -57,14 +63,6 @@ resource "helm_release" "argocd_extra_objects" {
   # also rewrite the app-of-apps root, whose Applications carry
   # resources-finalizer.argocd.argoproj.io with prune enabled -- removing one prunes
   # the real workloads. Freeze it.
-  lifecycle {
-    # NOT `all`: that also freezes `repository` at the null the import leaves behind,
-    # and the provider then cannot resolve the chart ("non-absolute URLs should be in
-    # form of repo_name/path_to_chart"). Freeze only what actually drifts.
-    ignore_changes = [version, values, create_namespace, upgrade_install]
-
-    prevent_destroy = true
-  }
 }
 
 resource "kubernetes_secret" "argocd_repo" {
