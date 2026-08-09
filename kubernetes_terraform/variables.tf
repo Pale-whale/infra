@@ -37,8 +37,10 @@ variable "cluster_name" {
 }
 
 variable "talos_version" {
+  # Live: the nodes report Talos v1.13.0. They were upgraded in place after install,
+  # so this trailed reality. It feeds the machine config AND the nocloud image name.
   type    = string
-  default = "v1.11.3"
+  default = "v1.13.0"
 }
 
 variable "talos_schematic" {
@@ -51,8 +53,11 @@ variable "extra_talos_filters" {
 }
 
 variable "kubernetes_version" {
+  # Live: kubelet and the control-plane components all run v1.35.4. This value is
+  # baked into the machine config as pinned image tags, so leaving it at v1.34.1
+  # meant any machine_configuration_apply would have DOWNGRADED Kubernetes.
   type    = string
-  default = "v1.34.1"
+  default = "v1.35.4"
 }
 
 variable "default_gateway" {
@@ -84,8 +89,9 @@ variable "deploy_cilium_cni" {
 }
 
 variable "cilium_version" {
+  # Live: ArgoCD runs v1.20.0. Only used for a greenfield bootstrap install now.
   type    = string
-  default = "1.18.2"
+  default = "1.20.0"
 }
 
 variable "deploy_argocd" {
@@ -94,8 +100,9 @@ variable "deploy_argocd" {
 }
 
 variable "argocd_version" {
+  # Live: the argocd Application tracks chart argo-cd 9.5.13. Bootstrap-only.
   type    = string
-  default = "v9.0.6"
+  default = "9.5.13"
 }
 
 variable "argocd_private_repo" {

@@ -98,7 +98,14 @@ data "talos_machine_configuration" "workers" {
 }
 
 resource "talos_machine_configuration_apply" "worker" {
-  depends_on                  = [proxmox_virtual_environment_vm.worker, talos_machine_configuration_apply.controlplane]
+  # Deliberately NOT depends_on talos_machine_configuration_apply.controlplane.
+  # depends_on references the whole resource, so naming it dragged all three control
+  # plane instances into the graph of any targeted worker operation -- there was no
+  # -target combination that could touch one worker without also re-applying config to
+  # every master. Talos tolerates a worker being configured before the control plane is
+  # reachable (it retries), so the ordering this bought was not worth losing the ability
+  # to act on one node at a time.
+  depends_on                  = [proxmox_virtual_environment_vm.worker]
   for_each                    = local.workers
   client_configuration        = talos_machine_secrets.machine_secrets.client_configuration
   machine_configuration_input = data.talos_machine_configuration.workers.machine_configuration

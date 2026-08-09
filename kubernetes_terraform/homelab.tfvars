@@ -1,7 +1,11 @@
 cluster_name = "homelab"
 
-talos_version      = "v1.11.3"
-kubernetes_version = "v1.34.1"
+# Live: nodes report Talos v1.13.0 (upgraded in place since install).
+talos_version = "v1.13.0"
+# Live: kubelet and all control-plane components run v1.35.4. This is baked into
+# the machine config as pinned image tags -- v1.34.1 here meant any
+# machine_configuration_apply would have downgraded Kubernetes.
+kubernetes_version = "v1.35.4"
 
 extra_talos_filters = [
   "i915"
