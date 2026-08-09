@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:sergelogvinov/proxmox-csi-plugin.git 
-    targetRevision: v0.18.1
+    targetRevision: v0.20.0
     path: charts/proxmox-csi-plugin
   destination:
     server: https://kubernetes.default.svc
