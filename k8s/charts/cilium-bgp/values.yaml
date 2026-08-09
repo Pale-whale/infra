@@ -1,7 +1,3 @@
-# The ASNs were previously hardcoded to 64512 on BOTH sides in
-# templates/cluster-config.yaml, which did not match the running cluster and
-# would have turned the live eBGP session into iBGP if this chart were ever
-# synced. They are values now so git carries the truth.
 localASN: 64513
 
 peer:
