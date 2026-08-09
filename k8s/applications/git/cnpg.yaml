@@ -3,7 +3,7 @@ app:
   project: infra
   source:
     repoURL: git@github.com:cloudnative-pg/charts.git
-    targetRevision: cloudnative-pg-v0.26.1
+    targetRevision: cloudnative-pg-v0.29.0
     path: charts/cloudnative-pg
   destination:
     server: https://kubernetes.default.svc
