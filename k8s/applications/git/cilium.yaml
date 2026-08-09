@@ -28,8 +28,31 @@ app:
         hostRoot: '/sys/fs/cgroup'
       k8sServiceHost: localhost
       k8sServicePort: 7445
+      # Cilium exported no metrics at all before this: agent scraping is off by
+      # default, the operator exposes metrics but had no ServiceMonitor, and
+      # Hubble reported "Metrics: Disabled". kube-prometheus-stack's Prometheus
+      # uses empty serviceMonitorSelector/namespaceSelector, so it picks these up
+      # from kube-system with no extra labels.
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
       hubble:
         enabled: true
+        # Default is 4095 flows. At the ~45 flows/s this cluster sees that is
+        # barely 90s of history, which makes the UI useless for anything not
+        # caught live. Costs agent memory roughly in proportion.
+        eventBufferCapacity: "65535"
+        metrics:
+          enabled:
+            - dns
+            - drop
+            - tcp
+            - flow
+            - icmp
+            - port-distribution
+          serviceMonitor:
+            enabled: true
         relay:
           enabled: true
           rollOutPods: true
@@ -46,7 +69,9 @@ app:
         mode: kubernetes
       ipv4NativeRoutingCIDR: "10.10.0.0/16"
       kubeProxyReplacement: true
-      localRedirectPolicy: true
+      # Only the nested form. The flat `localRedirectPolicy` is deprecated
+      # upstream ("please use 'localRedirectPolicies.enabled' instead") and both
+      # were being set.
       localRedirectPolicies:
         enabled: true
       loadBalancer:
@@ -58,6 +83,12 @@ app:
       operator:
         replicas: 2
         rollOutPods: true
+        # operator.prometheus.enabled already defaults to true, so the metrics
+        # were being exposed and simply never scraped.
+        prometheus:
+          enabled: true
+          serviceMonitor:
+            enabled: true
       securityContext:
         capabilities:
           ciliumAgent:
@@ -76,6 +107,11 @@ app:
             - NET_ADMIN
             - SYS_ADMIN
             - SYS_RESOURCE
+      # Single block. This key was previously declared twice; YAML takes the last
+      # occurrence, so the first was silently dropped along with the
+      # node.cilium.io/agent-not-ready toleration. That was masked by the
+      # catch-all `operator: Exists` below, but would have bitten the moment
+      # anyone tightened it.
       tolerations:
         - operator: Exists
         - effect: NoSchedule
@@ -83,9 +119,4 @@ app:
           operator: Exists
         - effect: NoSchedule
           key: node.cilium.io/agent-not-ready
-          operator: Exists
-      tolerations:
-        - operator: Exists
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/control-plane
           operator: Exists

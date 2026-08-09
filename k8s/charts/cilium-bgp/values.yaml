@@ -1,6 +1,15 @@
+# The ASNs were previously hardcoded to 64512 on BOTH sides in
+# templates/cluster-config.yaml, which did not match the running cluster and
+# would have turned the live eBGP session into iBGP if this chart were ever
+# synced. They are values now so git carries the truth.
+localASN: 64513
+
 peer:
   name: peer
-  address: '10.0.0.254'
+  # OPNsense. Note this is NOT the default gateway (10.0.0.254) — the router
+  # answers BGP on a different address.
+  address: '10.0.0.1'
+  asn: 64512
 
 loadBalancerPool:
   spec:

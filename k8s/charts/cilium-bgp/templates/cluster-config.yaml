@@ -8,10 +8,10 @@ spec:
       kubernetes.io/os: linux
   bgpInstances:
   - name: "kubernetes"
-    localASN: 64512
+    localASN: {{ .Values.localASN }}
     peers:
     - name: {{ .Values.peer.name }}
-      peerASN: 64512
+      peerASN: {{ .Values.peer.asn }}
       peerAddress: {{ .Values.peer.address | squote }}
       peerConfigRef:
         name: {{ .Values.peer.name }}
