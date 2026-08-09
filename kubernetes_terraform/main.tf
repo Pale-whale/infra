@@ -109,7 +109,12 @@ resource "kubernetes_secret" "proxmox_ccm_credentials" {
   data = {
     "config.yaml" = <<EOT
 clusters:
-  - url: http://10.0.0.254:8006/api2/json
+  # Codified from the live secrets. 10.0.0.254 was the default gateway, not the
+  # Proxmox host, and predates the API move to 192.168.20.3. Note the scheme is
+  # http: Proxmox serves HTTPS on 8006 and 301-redirects, which the plugin follows,
+  # so this works -- https://192.168.20.3:8006/api2/json avoids the redirect and is
+  # fine too given insecure: true below.
+  - url: http://192.168.20.3:8006/api2/json
     insecure: true
     token_id: "${proxmox_virtual_environment_user_token.ccm.id}"
     token_secret: "${split("=", proxmox_virtual_environment_user_token.ccm.value)[1]}"
@@ -185,7 +190,12 @@ resource "kubernetes_secret" "proxmox_csi_credentials" {
   data = {
     "config.yaml" = <<EOT
 clusters:
-  - url: http://10.0.0.254:8006/api2/json
+  # Codified from the live secrets. 10.0.0.254 was the default gateway, not the
+  # Proxmox host, and predates the API move to 192.168.20.3. Note the scheme is
+  # http: Proxmox serves HTTPS on 8006 and 301-redirects, which the plugin follows,
+  # so this works -- https://192.168.20.3:8006/api2/json avoids the redirect and is
+  # fine too given insecure: true below.
+  - url: http://192.168.20.3:8006/api2/json
     insecure: true
     token_id: "${proxmox_virtual_environment_user_token.csi.id}"
     token_secret: "${split("=", proxmox_virtual_environment_user_token.csi.value)[1]}"
