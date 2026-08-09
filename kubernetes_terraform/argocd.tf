@@ -49,6 +49,22 @@ resource "helm_release" "argocd_extra_objects" {
     extra_applications = var.argocd_extra_applications
     extra_projects     = var.argocd_extra_projects
   })]
+
+  # This address owns the live argocd/argocd release (imported). Same reasoning as
+  # helm_release.cilium: the provider does not read repository/values/upgrade_install
+  # back on import and records the version as "9.0.6" against the config's "v9.0.6",
+  # so an unfrozen plan shows a permanent phantom update. Re-applying the values would
+  # also rewrite the app-of-apps root, whose Applications carry
+  # resources-finalizer.argocd.argoproj.io with prune enabled -- removing one prunes
+  # the real workloads. Freeze it.
+  lifecycle {
+    # NOT `all`: that also freezes `repository` at the null the import leaves behind,
+    # and the provider then cannot resolve the chart ("non-absolute URLs should be in
+    # form of repo_name/path_to_chart"). Freeze only what actually drifts.
+    ignore_changes = [version, values, create_namespace, upgrade_install]
+
+    prevent_destroy = true
+  }
 }
 
 resource "kubernetes_secret" "argocd_repo" {

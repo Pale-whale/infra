@@ -3,6 +3,17 @@ variable "proxmox_token" {
   sensitive = true
 }
 
+variable "kubeconfig_path" {
+  description = <<-EOT
+    Kubeconfig used by the kubernetes and helm providers. These deliberately do NOT
+    derive credentials from talos_cluster_kubeconfig: that resource is not importable,
+    so referencing it makes provider configuration unresolvable and blocks `terraform
+    import` entirely. The context is pinned to var.cluster_name.
+  EOT
+  type        = string
+  default     = "~/.kube/config"
+}
+
 variable "bootstrap_phase" {
   description = <<-EOT
     True ONLY for an initial greenfield build. Gates the one-shot bootstrap resources
@@ -223,6 +234,8 @@ variable "default_disk" {
     ssd          = optional(bool)
     discard      = optional(string)
     iothread     = optional(bool)
+    cache        = optional(string)
+    aio          = optional(string)
   })
   default = {}
 }
@@ -261,6 +274,8 @@ variable "topology" {
         ssd          = optional(bool)
         discard      = optional(string)
         iothread     = optional(bool)
+        cache        = optional(string)
+        aio          = optional(string)
       }), {})
       additional_disks = optional(map(object({
         datastore_id      = optional(string)
@@ -270,6 +285,8 @@ variable "topology" {
         discard           = optional(string)
         iothread          = optional(bool)
         ssd               = optional(bool)
+        cache             = optional(string)
+        aio               = optional(string)
         import_from       = optional(string)
         path_in_datastore = optional(string)
       })), {})
@@ -301,6 +318,8 @@ variable "topology" {
         ssd          = optional(bool)
         discard      = optional(string)
         iothread     = optional(bool)
+        cache        = optional(string)
+        aio          = optional(string)
       }), {})
       additional_disks = optional(map(object({
         datastore_id      = optional(string)
@@ -310,6 +329,8 @@ variable "topology" {
         discard           = optional(string)
         iothread          = optional(bool)
         ssd               = optional(bool)
+        cache             = optional(string)
+        aio               = optional(string)
         import_from       = optional(string)
         path_in_datastore = optional(string)
       })), {})

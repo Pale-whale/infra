@@ -62,6 +62,13 @@ resource "proxmox_virtual_environment_user" "ccm" {
   enabled         = true
   expiration_date = "2046-01-01T20:00:00Z"
   user_id         = "kubernetes-ccm@pve"
+
+  # The API returns the user's ACL entries, but they are declared on the separate
+  # proxmox_virtual_environment_acl.ccm resource, not here. Without this the plan
+  # proposes acl [...] -> [], i.e. revoking the CCM permissions on a live cluster.
+  lifecycle {
+    ignore_changes = [acl]
+  }
 }
 
 resource "proxmox_virtual_environment_user_token" "ccm" {
@@ -82,6 +89,14 @@ resource "proxmox_virtual_environment_acl" "ccm" {
 
 resource "kubernetes_secret" "proxmox_ccm_credentials" {
   depends_on = [data.talos_cluster_health.health]
+
+  # Bootstrap-only. proxmox_virtual_environment_user_token.value is returned by the
+  # Proxmox API ONLY at creation, so after an import it is null and the split()
+  # below fails outright at evaluation time -- ignore_changes cannot help, the
+  # expression itself errors. Gating keeps the live CCM/CSI secrets untouched
+  # (losing them would break PV attach/detach) while a greenfield build, where
+  # the token really is created, still works.
+  count = var.bootstrap_phase ? 1 : 0
 
   metadata {
     name      = "proxmox-cloud-controller-manager"
@@ -123,6 +138,13 @@ resource "proxmox_virtual_environment_user" "csi" {
   enabled         = true
   expiration_date = "2046-01-01T20:00:00Z"
   user_id         = "kubernetes-csi@pve"
+
+  # The API returns the user's ACL entries, but they are declared on the separate
+  # proxmox_virtual_environment_acl.csi resource, not here. Without this the plan
+  # proposes acl [...] -> [], i.e. revoking the CSI permissions on a live cluster.
+  lifecycle {
+    ignore_changes = [acl]
+  }
 }
 
 resource "proxmox_virtual_environment_user_token" "csi" {
@@ -143,6 +165,14 @@ resource "proxmox_virtual_environment_acl" "csi" {
 
 resource "kubernetes_secret" "proxmox_csi_credentials" {
   depends_on = [data.talos_cluster_health.health]
+
+  # Bootstrap-only. proxmox_virtual_environment_user_token.value is returned by the
+  # Proxmox API ONLY at creation, so after an import it is null and the split()
+  # below fails outright at evaluation time -- ignore_changes cannot help, the
+  # expression itself errors. Gating keeps the live CCM/CSI secrets untouched
+  # (losing them would break PV attach/detach) while a greenfield build, where
+  # the token really is created, still works.
+  count = var.bootstrap_phase ? 1 : 0
 
   metadata {
     name      = "proxmox-csi-plugin"

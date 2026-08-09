@@ -49,22 +49,27 @@ provider "proxmox" {
 
 provider "talos" {}
 
+# These previously derived their credentials from talos_cluster_kubeconfig.kubeconfig.
+# That is a hard cycle: the talos provider has no ImportState for that resource, so it
+# can never be in state, so provider configuration is never resolvable, so Terraform
+# refuses to run `import` at all -- "The configuration for provider[...kubernetes]
+# depends on values that cannot be determined until apply." Deriving provider config
+# from a managed resource is the documented way to get stuck like this.
+#
+# Reading a kubeconfig file instead breaks the cycle permanently. The context is pinned
+# so this can never silently act on whatever cluster happens to be current.
+# On a greenfield build, write `terraform output -raw kubeconfig` to disk after the
+# talos stages and re-run; that is the same two-phase shape as var.bootstrap_phase.
 provider "helm" {
   kubernetes = {
-    host = "https://${var.kubeapi_address}:6443"
-
-    client_certificate     = base64decode(talos_cluster_kubeconfig.kubeconfig.kubernetes_client_configuration.client_certificate)
-    client_key             = base64decode(talos_cluster_kubeconfig.kubeconfig.kubernetes_client_configuration.client_key)
-    cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.kubeconfig.kubernetes_client_configuration.ca_certificate)
+    config_path    = pathexpand(var.kubeconfig_path)
+    config_context = var.cluster_name
   }
 }
 
 provider "kubernetes" {
-  host = "https://${var.kubeapi_address}:6443"
-
-  client_certificate     = base64decode(talos_cluster_kubeconfig.kubeconfig.kubernetes_client_configuration.client_certificate)
-  client_key             = base64decode(talos_cluster_kubeconfig.kubeconfig.kubernetes_client_configuration.client_key)
-  cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.kubeconfig.kubernetes_client_configuration.ca_certificate)
+  config_path    = pathexpand(var.kubeconfig_path)
+  config_context = var.cluster_name
 }
 
 provider "github" {} # Rights needed: write:ssh_keys

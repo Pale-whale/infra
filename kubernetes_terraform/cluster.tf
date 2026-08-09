@@ -5,9 +5,14 @@ resource "talos_machine_secrets" "machine_secrets" {
   # CA, service-account key and the bootstrap/trustd tokens. Destroying and letting
   # Terraform regenerate it would issue brand-new CAs, and every downstream resource
   # would then push configs signed by a foreign CA to the running nodes. That is
-  # cluster-destroying, not drift. Imported from secrets.yaml; keep it that way.
+  # cluster-destroying, not drift.
+  #
+  # Imported from secrets.yaml, and nothing about it should ever change. The import
+  # records talos_version as "v1.3" against the config's "v1.11.3", which would
+  # otherwise show as a permanent update on the resource holding the cluster PKI.
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = all
   }
 }
 

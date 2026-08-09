@@ -15,7 +15,7 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
 
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
-    type  = "x86-64-v2-AES"
+    type  = "host" # matches live; every VM reports host
   }
 
   memory {
@@ -55,6 +55,8 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
     discard      = try(coalesce(each.value.disk.discard, var.default_disk.discard), null)
     ssd          = try(coalesce(each.value.disk.ssd, var.default_disk.ssd), null)
     iothread     = try(coalesce(each.value.disk.iothread, var.default_disk.iothread), null)
+    cache        = try(coalesce(each.value.disk.cache, var.default_disk.cache), null)
+    aio          = try(coalesce(each.value.disk.aio, var.default_disk.aio), null)
   }
 
   dynamic "disk" {
@@ -67,6 +69,8 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
       discard           = try(disk.value.discard, null)
       ssd               = try(disk.value.ssd, null)
       iothread          = try(disk.value.iothread, null)
+      cache             = try(disk.value.cache, null)
+      aio               = try(disk.value.aio, null)
       import_from       = try(disk.value.import_from, null)
       path_in_datastore = try(disk.value.path_in_datastore, null)
     }
@@ -88,6 +92,14 @@ resource "proxmox_virtual_environment_vm" "controlplane" {
   # These are live control-plane nodes. Nothing in this module protected them before.
   lifecycle {
     prevent_destroy = true
+
+    # disk: proxmox-csi-plugin attaches and detaches PVC volumes on these VMs at
+    # runtime (the mon volumes show up as a second scsi disk, vm-9999-pvc-*). Terraform
+    # only ever knows about the boot disk, so without this it plans to detach them.
+    # The disk blocks below remain the source of truth for a greenfield build.
+    # initialization: the cloud-init password is write-only in the Proxmox API, so it
+    # can never read back and diffs forever.
+    ignore_changes = [disk, initialization]
   }
 }
 
@@ -108,7 +120,7 @@ resource "proxmox_virtual_environment_vm" "worker" {
 
   cpu {
     cores = coalesce(each.value.cpu, var.default_controlplane_cpu)
-    type  = "x86-64-v2-AES"
+    type  = "host" # matches live; every VM reports host
   }
 
   memory {
@@ -148,6 +160,8 @@ resource "proxmox_virtual_environment_vm" "worker" {
     discard      = try(coalesce(each.value.disk.discard, var.default_disk.discard), null)
     ssd          = try(coalesce(each.value.disk.ssd, var.default_disk.ssd), null)
     iothread     = try(coalesce(each.value.disk.iothread, var.default_disk.iothread), null)
+    cache        = try(coalesce(each.value.disk.cache, var.default_disk.cache), null)
+    aio          = try(coalesce(each.value.disk.aio, var.default_disk.aio), null)
   }
 
   dynamic "disk" {
@@ -160,6 +174,8 @@ resource "proxmox_virtual_environment_vm" "worker" {
       discard           = try(disk.value.discard, null)
       ssd               = try(disk.value.ssd, null)
       iothread          = try(disk.value.iothread, null)
+      cache             = try(disk.value.cache, null)
+      aio               = try(disk.value.aio, null)
       import_from       = try(disk.value.import_from, null)
       path_in_datastore = try(disk.value.path_in_datastore, null)
     }
@@ -200,5 +216,10 @@ resource "proxmox_virtual_environment_vm" "worker" {
   # the guard matters more on the workers than anywhere else in this module.
   lifecycle {
     prevent_destroy = true
+
+    # Same reasoning as the control plane, plus: these disk entries are physical
+    # passthrough devices. Terraform should describe them for a rebuild but must never
+    # reconcile them against a running cluster.
+    ignore_changes = [disk, initialization]
   }
 }
