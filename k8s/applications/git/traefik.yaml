@@ -53,6 +53,24 @@ app:
             secretKeyRef:
               name: cloudflare-api-key
               key: apiKey
+      updateStrategy:
+        # Single replica on a ReadWriteOnce PVC: a surging pod scheduled to a
+        # different node than the outgoing one blocks on RBD multi-attach and
+        # the rollout stalls. Recreate swaps cleanly at the cost of a couple of
+        # seconds of ingress downtime.
+        type: Recreate
+      podSecurityContext:
+        # The chart runs Traefik as 65532 but sets no fsGroup, so the mounted
+        # PVC stays root:root 755 and ACME cannot create its storage file:
+        # "The ACME resolve is skipped from the resolvers list --
+        # unable to get ACME account: open /data/acme.json: permission denied".
+        # Every router then silently falls back to Traefik's self-signed
+        # default certificate.
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
       persistence:
         enabled: true
         name: data
