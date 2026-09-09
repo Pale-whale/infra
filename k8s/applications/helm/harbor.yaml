@@ -1,0 +1,116 @@
+app:
+  name: harbor
+  project: infra
+  source:
+    repoURL: https://helm.goharbor.io
+    chart: harbor
+    targetRevision: 1.19.2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: harbor
+  helm:
+    values: |
+      externalURL: https://oci.palewhale.fr
+      expose:
+        type: ingress
+        tls:
+          # Traefik terminates TLS on the websecure entrypoint with the
+          # letsencrypt certResolver (see traefik.yaml), so Harbor serves plain
+          # HTTP behind the ingress and issues no certificate of its own.
+          enabled: false
+        ingress:
+          className: traefik
+          hosts:
+            core: oci.palewhale.fr
+          annotations:
+            traefik.ingress.kubernetes.io/router.tls: 'true'
+            # external-dns runs with --cloudflare-proxied, but Cloudflare's
+            # proxy caps request bodies at 100MB on the free plan -- far below
+            # a typical image layer -- so this record has to stay DNS-only or
+            # docker push fails with 413 partway through a blob upload.
+            external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+            # Chart defaults aimed at the nginx ingress controller. They do
+            # nothing under Traefik, and the chart requires the ssl-redirect
+            # ones to be dropped when expose.tls.enabled is false.
+            ingress.kubernetes.io/ssl-redirect: null
+            ingress.kubernetes.io/proxy-body-size: null
+            nginx.ingress.kubernetes.io/ssl-redirect: null
+            nginx.ingress.kubernetes.io/proxy-body-size: null
+      # Both secrets are synced from Infisical by the harbor-secrets app.
+      existingSecretAdminPassword: harbor-admin-password
+      existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
+      existingSecretSecretKey: harbor-secret-key
+      database:
+        # Postgres comes from the harbor-pg CNPG cluster, like every other
+        # database in the cluster, rather than the chart's bundled instance.
+        # "existingSecret" only carries the password; CNPG generates it into
+        # harbor-pg-cluster-app under the "password" key the chart expects.
+        type: external
+        external:
+          host: harbor-pg-cluster-rw
+          port: '5432'
+          username: harbor
+          coreDatabase: registry
+          existingSecret: harbor-pg-cluster-app
+          # CNPG serves TLS with its own CA, which Harbor does not trust;
+          # "require" encrypts the connection without verifying the chain.
+          sslmode: require
+      redis:
+        # Kept internal -- nothing else in the cluster needs it, and Harbor
+        # only uses it as a cache/job queue.
+        type: internal
+      persistence:
+        persistentVolumeClaim:
+          registry:
+            storageClass: ceph-block
+            size: 100Gi
+          jobservice:
+            jobLog:
+              storageClass: ceph-block
+              size: 1Gi
+          redis:
+            storageClass: ceph-block
+            size: 1Gi
+          trivy:
+            storageClass: ceph-block
+            size: 5Gi
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+      core:
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+      jobservice:
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+      registry:
+        registry:
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+        controller:
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+      portal:
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi

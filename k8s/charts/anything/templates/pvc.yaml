@@ -1,4 +1,4 @@
-{{- range .Values -}}
+{{- range .Values }}
 ---
 {{ . | toYaml }}
-{{- end -}}
+{{- end }}
