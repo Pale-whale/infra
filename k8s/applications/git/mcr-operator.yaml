@@ -1,0 +1,38 @@
+app:
+  name: mcr-operator
+  project: infra
+  source:
+    repoURL: git@github.com:Pale-whale/mcr-operator.git
+    # No tags are cut on this repo yet, so it tracks the default branch the
+    # same way the other first-party charts here do.
+    targetRevision: HEAD
+    path: deploy/chart/mcr-operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mcr-operator
+  helm:
+    values: |
+      image:
+        repository: oci.palewhale.fr/library/mcr-operator
+        tag: v0.0.1
+      # The chart defaults to pulling with a "harbor-registry" secret. No such
+      # secret exists in the cluster and the Harbor "library" project is
+      # public, so pulls are anonymous. Naming a secret that does not exist
+      # makes kubelet log a retrieval failure on every pull, so it is cleared
+      # rather than left pointing at nothing. Give the operator a robot account
+      # and restore this if library ever stops being public.
+      imagePullSecrets: []
+      # Single replica, so leader election only costs a Lease and two more API
+      # calls per interval. The chart forces it on above one replica anyway.
+      replicaCount: 1
+      leaderElection: false
+      # No Service or ServiceMonitor is rendered by this chart, so an exposed
+      # metrics port would have nothing scraping it.
+      metrics:
+        bindAddress: ''
+      resources:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
