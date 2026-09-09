@@ -10,9 +10,6 @@ app:
     namespace: minecraft
   helm:
     values: |
-      # Renders a Cluster, a Proxy and a Server. These are custom resources, so
-      # this app only syncs cleanly once mcr-operator has installed the CRDs --
-      # sync that one first.
       clusterName: newnouns
       router:
         # The router fronts several proxies and picks between them by hostname.
@@ -30,46 +27,27 @@ app:
               memory: 512Mi
           service:
             type: LoadBalancer
-            # Cilium advertises the pool 172.17.0.0/16 over BGP. Pinned rather
-            # than left to IPAM so the address players connect to survives a
-            # recreate, matching traefik (.0) and immich (.9). This is the
-            # address TCP 25565 has to be forwarded to on OPNsense for
-            # newnouns.palewhale.fr:25565 to resolve for players.
             loadBalancerIP: 172.17.69.25
       servers:
         lobby:
-          # The operator refuses to start a server until this is set.
           eula: true
           # Players entering through the proxy land on a server tagged "lobby".
           tags:
             - lobby
-          # Paper, not vanilla: the operator hardcodes TYPE=PAPER on the
-          # itzg/minecraft-server image and mounts a paper-global.yml it
-          # manages itself. There is no CRD field to select a flavour, so this
-          # is only the game version Paper is built for.
           version: '1.26.2'
           difficulty: normal
           mode: survival
           forceGamemode: true
           levelName: newnouns
-          # Quoted so YAML keeps the leading minus as text rather than parsing
-          # it into an int the CRD may not accept. Only ever read when the
-          # world is generated: changing it later does nothing to an existing
-          # world, which has to be deleted off the PVC to be regenerated.
+          type: paper
           seed: '-3899835130120818196'
           whitelist:
             - nouns_lover
           ops:
             - nouns_lover
           storage:
-            # Raised from 10Gi because BlueMap does not get a volume of its
-            # own -- it mounts bluemap/data and bluemap/web as subpaths of this
-            # same claim -- so rendered tiles now grow alongside the world.
             size: 20Gi
             storageClass: ceph-block
-          # Paper idles well under this; the limit is deliberately equal to the
-          # request so the JVM heap sits in a guaranteed slice and is not
-          # reclaimed under node pressure.
           resources:
             limits:
               memory: 2Gi
@@ -83,19 +61,7 @@ app:
               className: traefik
               host: newnouns.palewhale.fr
               annotations:
-                # Same reasoning as Harbor: this record has to stay DNS-only.
-                # Cloudflare's proxy only carries HTTP(S), so a proxied record
-                # would answer for the map on 443 and black-hole the Minecraft
-                # client on 25565 -- and both share this one hostname.
                 external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
-            # No tlsSecretName and no router.tls annotation: the websecure
-            # entrypoint terminates TLS with the *.palewhale.fr wildcard, and
-            # naming a resolver-less TLS config here would drop back to the
-            # Traefik default certificate the way the Harbor ingress did.
-            #
-            # The operator derives BlueMap's render-thread count from the CPU
-            # limit, so 2 bounds the initial render without letting it take the
-            # whole node while it works through the world.
             resources:
               limits:
                 cpu: '2'
