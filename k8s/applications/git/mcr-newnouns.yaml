@@ -34,7 +34,7 @@ app:
           # Players entering through the proxy land on a server tagged "lobby".
           tags:
             - lobby
-          version: '1.26.2'
+          version: '26.2'
           difficulty: normal
           mode: survival
           forceGamemode: true
