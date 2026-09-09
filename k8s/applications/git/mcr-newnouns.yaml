@@ -43,6 +43,7 @@ app:
           seed: '-3899835130120818196'
           whitelist:
             - nouns_lover
+            - Nouns_mommy
           ops:
             - nouns_lover
           storage:
