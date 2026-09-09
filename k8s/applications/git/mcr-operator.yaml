@@ -1,0 +1,28 @@
+app:
+  name: mcr-operator
+  project: infra
+  source:
+    repoURL: git@github.com:Pale-whale/mcr-operator.git
+    # No tags are cut on this repo yet, so it tracks the default branch the
+    # same way the other first-party charts here do.
+    targetRevision: HEAD
+    path: deploy/chart/mcr-operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mcr-operator
+  helm:
+    values: |
+      image:
+        repository: oci.palewhale.fr/library/mcr-operator
+        tag: v0.0.1
+      imagePullSecrets: []
+      replicaCount: 1
+      leaderElection: false
+      metrics:
+        bindAddress: ''
+      resources:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
