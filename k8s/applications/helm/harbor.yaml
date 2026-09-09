@@ -23,7 +23,14 @@ app:
           hosts:
             core: oci.palewhale.fr
           annotations:
-            traefik.ingress.kubernetes.io/router.tls: 'true'
+            # No router.tls annotation here on purpose. Setting it gives the
+            # router an explicit TLS config, and an explicit config does NOT
+            # inherit the websecure entrypoint's default certResolver, so the
+            # router ends up as {"options":"default"} with no resolver, never
+            # requests a certificate, and silently serves the Traefik default
+            # self-signed one. Every other ingress in the cluster omits it and
+            # gets {"options":"default","certResolver":"letsencrypt"}.
+            # websecure is asDefault with http.tls=true, so TLS is on anyway.
             # external-dns runs with --cloudflare-proxied, but Cloudflare's
             # proxy caps request bodies at 100MB on the free plan -- far below
             # a typical image layer -- so this record has to stay DNS-only or
