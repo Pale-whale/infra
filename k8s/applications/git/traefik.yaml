@@ -30,7 +30,20 @@ app:
           tls:
             certResolver: letsencrypt
             domains:
-              - name: palewhale.fr
+              # One wildcard rather than a per-host certificate each. Traefik
+              # skips a router's own request when a stored certificate already
+              # covers the name, so this collapses 13 concurrent DNS-01
+              # challenges into one. That concurrency is what broke the first
+              # rollout: two challenges racing on the same _acme-challenge name
+              # make Cloudflare reject the second with "81058: An identical
+              # record already exists", and the orphaned TXT record then blocks
+              # every retry until it is deleted by hand.
+              # "main", not "name" -- the chart guards the rendered arg on
+              # {{ if $domain.main }}, so the entry this replaced never emitted
+              # anything at all.
+              - main: palewhale.fr
+                sans:
+                  - '*.palewhale.fr'
       certificatesResolvers:
         letsencrypt:
           acme:
