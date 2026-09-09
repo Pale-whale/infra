@@ -1,5 +1,5 @@
 app:
-  name: mcr-sample
+  name: mcr-newnoons
   project: infra
   source:
     repoURL: git@github.com:Pale-whale/mcr-operator.git
@@ -13,7 +13,7 @@ app:
       # Renders a Cluster, a Proxy and a Server. These are custom resources, so
       # this app only syncs cleanly once mcr-operator has installed the CRDs --
       # sync that one first.
-      clusterName: cluster
+      clusterName: newnoons
       router:
         # The router fronts several proxies and picks between them by hostname.
         # There is one proxy here, so players connect to its service directly
@@ -21,7 +21,7 @@ app:
         enable: false
       proxies:
         velocity:
-          motd: palewhale homelab
+          motd: Welcome to new noons
           resources:
             limits:
               memory: 512Mi
@@ -41,7 +41,7 @@ app:
           # Players entering through the proxy land on a server tagged "lobby".
           tags:
             - lobby
-          version: '1.21.4'
+          version: '1.26.2'
           difficulty: normal
           mode: survival
           storage:
