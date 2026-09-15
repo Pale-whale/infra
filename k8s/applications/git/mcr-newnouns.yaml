@@ -50,6 +50,15 @@ app:
             requests:
               cpu: 250m
               memory: 1Gi
+          env:
+            # No mobs in the hub. doMobSpawning covers every natural spawn -
+            # hostile, passive and ambient - and is a game rule, not a
+            # property: spawn-monsters was removed from server.properties in
+            # 25w35a and setting it here would do nothing. Game rules live in
+            # level.dat, and this re-applies on every start so a world reset
+            # cannot lose it. RCON is already on in the image by default.
+            - name: RCON_CMDS_STARTUP
+              value: gamerule doMobSpawning false
         main:
           eula: true
           tags:
