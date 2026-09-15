@@ -81,6 +81,10 @@ app:
             - axgraves:1.31.0
             - sleep-plugin:1.0.4
             - thizzyz-tree-feller:1.31.0
+            - smartinv:1.5
+            - better-shulkers:mc26.2-2.0.0
+            - veinminer:2.12.1
+            - fastleafdecay:1.0.8
           whitelist:
             - nouns_lover
             - Nouns_mommy
