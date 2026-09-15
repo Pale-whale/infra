@@ -3,8 +3,10 @@ app:
   project: infra
   source:
     repoURL: git@github.com:Pale-whale/mcr-operator.git
-    # No tags are cut on this repo yet, so it tracks the default branch the
-    # same way the other first-party charts here do.
+    # Tracks the default branch the same way the other first-party charts here
+    # do. That means a release lands as soon as it is merged, so read the
+    # CHANGELOG before merging a breaking one - 0.1.0 moved every
+    # server.properties key into spec.properties.
     targetRevision: HEAD
     path: deploy/chart/mcr-operator
   destination:
@@ -13,8 +15,9 @@ app:
   helm:
     values: |
       image:
+        # No tag: it follows the chart's appVersion, so a release bumps one
+        # field rather than two.
         repository: oci.palewhale.fr/library/mcr-operator
-        tag: v0.0.1
       imagePullSecrets: []
       replicaCount: 1
       leaderElection: false

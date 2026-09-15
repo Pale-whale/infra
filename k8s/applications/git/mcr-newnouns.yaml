@@ -35,12 +35,19 @@ app:
           tags:
             - lobby
           version: '26.2'
-          difficulty: normal
-          mode: survival
-          forceGamemode: true
-          levelName: newnouns
-          type: paper
-          seed: '-3899835130120818196'
+          # The whole of server.properties, one key per line, values as
+          # strings. level-name is the world folder on the volume: without it
+          # the server generates a fresh world at world/ and leaves newnouns/
+          # sitting there unused. difficulty and gamemode are applied to the
+          # running server; the rest are read at startup and replace the pod.
+          properties:
+            difficulty: normal
+            gamemode: survival
+            force-gamemode: 'true'
+            level-name: newnouns
+            # Only read when the world is first generated; kept so the spec
+            # still says what this world was made from.
+            level-seed: '-3899835130120818196'
           whitelist:
             - nouns_lover
             - Nouns_mommy
