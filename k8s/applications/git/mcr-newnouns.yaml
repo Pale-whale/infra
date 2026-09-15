@@ -29,11 +29,12 @@ app:
             type: LoadBalancer
             loadBalancerIP: 172.17.69.25
       servers:
-        lobby:
+        main:
           eula: true
           # Players entering through the proxy land on a server tagged "lobby".
+          # That is the role, not the name, so it stays put through the rename.
           tags:
-            - lobby
+            - main
           version: '26.2'
           properties:
             difficulty: normal
@@ -51,6 +52,20 @@ app:
           storage:
             size: 20Gi
             storageClass: ceph-block
+            # Takes over the world the deleted "lobby" server left behind
+            # instead of starting from an empty volume. Nothing is copied: the
+            # claim keeps the name "lobby", because a claim cannot be renamed.
+            #
+            # The source server has to be gone first, which is what stops two
+            # servers ever holding one volume, and its world survives the
+            # delete because storage.reclaimPolicy defaults to Retain.
+            #
+            # Read once, when the claim is adopted. The API server rejects any
+            # later edit to it, and rejects removing spec.storage while it is
+            # set, so these three lines are permanent.
+            source:
+              server: lobby
+              mode: Move
           resources:
             limits:
               memory: 2Gi
