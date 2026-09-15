@@ -52,7 +52,13 @@ app:
               memory: 1Gi
           env:
             - name: RCON_CMDS_STARTUP
-              value: gamerule doMobSpawning false
+              value: |-
+                gamerule spawn_mobs false
+                gamerule fall_damage false
+                gamerule fire_damage false
+                gamerule drowning_damage false
+                gamerule freeze_damage false
+                gamerule pvp false
         main:
           eula: true
           tags:
