@@ -12,9 +12,6 @@ app:
     values: |
       clusterName: newnouns
       router:
-        # The router fronts several proxies and picks between them by hostname.
-        # There is one proxy here, so players connect to its service directly
-        # and the extra hop buys nothing.
         enable: false
       proxies:
         velocity:
@@ -29,10 +26,33 @@ app:
             type: LoadBalancer
             loadBalancerIP: 172.17.69.25
       servers:
+        hub:
+          eula: true
+          tags:
+            - lobby
+          version: '26.2'
+          properties:
+            difficulty: peaceful
+            gamemode: adventure
+            force-gamemode: 'true'
+            level-name: hub
+          whitelist:
+            - nouns_lover
+            - Nouns_mommy
+          ops:
+            - nouns_lover
+          worldDownloadURL: 'https://drive.usercontent.google.com/download?id=1L6k6np4ziVqAmMOAWWAFy_UR2Gt7Nl3K&export=download&authuser=1'
+          storage:
+            size: 5Gi
+            storageClass: ceph-block
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 250m
+              memory: 1Gi
         main:
           eula: true
-          # Nothing in the operator reads this one; "lobby" below is the only
-          # tag it acts on. This is here for us.
           tags:
             - main
           version: '26.2'
@@ -41,32 +61,15 @@ app:
             gamemode: survival
             force-gamemode: 'true'
             level-name: newnouns
-            # Only read when the world is first generated; kept so the spec
-            # still says what this world was made from.
             level-seed: '-3899835130120818196'
           whitelist:
             - nouns_lover
             - Nouns_mommy
           ops:
             - nouns_lover
-          worldDownloadURL: 'https://drive.usercontent.google.com/download?id=1L6k6np4ziVqAmMOAWWAFy_UR2Gt7Nl3K&export=download&authuser=1'
           storage:
             size: 20Gi
             storageClass: ceph-block
-            # Takes over the world the deleted "lobby" server left behind
-            # instead of starting from an empty volume. Nothing is copied: the
-            # claim keeps the name "lobby", because a claim cannot be renamed.
-            #
-            # The source server has to be gone first, which is what stops two
-            # servers ever holding one volume, and its world survives the
-            # delete because storage.reclaimPolicy defaults to Retain.
-            #
-            # Read once, when the claim is adopted. The API server rejects any
-            # later edit to it, and rejects removing spec.storage while it is
-            # set, so these three lines are permanent.
-            source:
-              server: lobby
-              mode: Move
           resources:
             limits:
               memory: 2Gi
@@ -74,8 +77,6 @@ app:
               cpu: '1'
               memory: 2Gi
           bluemap:
-            # Renders a 3D web map from the world volume, mounted read-only, in
-            # a container beside the server rather than as a Paper plugin.
             ingress:
               className: traefik
               host: newnouns.palewhale.fr
@@ -89,43 +90,3 @@ app:
               requests:
                 cpu: 500m
                 memory: 1Gi
-        hub:
-          eula: true
-          # The tag, not the name, is what the proxy routes on: players joining
-          # the proxy land on the server tagged "lobby", and are sent to main
-          # from here. Only one server may carry it.
-          tags:
-            - lobby
-          # Kept in step with main so both sides of a transfer speak the same
-          # protocol.
-          version: '26.2'
-          properties:
-            # A hub is somewhere to stand, not somewhere to play: adventure
-            # mode stops players reshaping it, and force-gamemode puts them
-            # back into it whenever they come home from main.
-            difficulty: peaceful
-            gamemode: adventure
-            force-gamemode: 'true'
-            level-name: hub
-          # The lobby is the only gate: Velocity authenticates players but
-          # holds no whitelist of its own, so anyone not listed here would
-          # reach the network and simply be unable to go anywhere.
-          whitelist:
-            - nouns_lover
-            - Nouns_mommy
-          ops:
-            - nouns_lover
-          storage:
-            # Its own claim, named after this server. It has to be a name main
-            # is not already using: main's world is on a claim still called
-            # "lobby", because a Move keeps the claim it took over.
-            size: 5Gi
-            storageClass: ceph-block
-          # A hub holds no world worth generating and no players doing anything
-          # expensive, so it does not need main's budget.
-          resources:
-            limits:
-              memory: 1Gi
-            requests:
-              cpu: 250m
-              memory: 1Gi
