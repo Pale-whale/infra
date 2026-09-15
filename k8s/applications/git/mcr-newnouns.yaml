@@ -16,6 +16,13 @@ app:
       proxies:
         velocity:
           motd: Welcome to new nouns
+          minecraftVersion: '26.2'
+          plugins:
+            # Pinned by version ID, not 1.1.0: that release declares support
+            # only to 1.21.11 and a version-number pin is filtered against
+            # minecraftVersion. qcFMObz9 is release 1.1.0.
+            - simple-reconnect:qcFMObz9
+            - velocity-auto-reconnect:1.1.0
           resources:
             limits:
               memory: 512Mi
@@ -36,6 +43,9 @@ app:
             gamemode: adventure
             force-gamemode: 'true'
             level-name: hub
+          plugins:
+            - portals-1:1.7.0
+            - worldedit:7.4.5
           whitelist:
             - nouns_lover
             - Nouns_mommy
@@ -61,6 +71,9 @@ app:
             force-gamemode: 'true'
             level-name: newnouns
             level-seed: '-3899835130120818196'
+          plugins:
+            - portals-1:1.7.0
+            - worldedit:7.4.5
           whitelist:
             - nouns_lover
             - Nouns_mommy
