@@ -70,6 +70,9 @@ app:
           storage:
             size: 20Gi
             storageClass: ceph-block
+            source:
+              server: lobby
+              mode: Move
           resources:
             limits:
               memory: 2Gi
