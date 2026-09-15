@@ -34,7 +34,7 @@ app:
           # Players entering through the proxy land on a server tagged "lobby".
           # That is the role, not the name, so it stays put through the rename.
           tags:
-            - lobby
+            - main
           version: '26.2'
           properties:
             difficulty: normal
