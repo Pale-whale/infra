@@ -35,12 +35,14 @@ app:
           tags:
             - lobby
           version: '26.2'
-          difficulty: normal
-          mode: survival
-          forceGamemode: true
-          levelName: newnouns
-          type: paper
-          seed: '-3899835130120818196'
+          properties:
+            difficulty: normal
+            gamemode: survival
+            force-gamemode: 'true'
+            level-name: newnouns
+            # Only read when the world is first generated; kept so the spec
+            # still says what this world was made from.
+            level-seed: '-3899835130120818196'
           whitelist:
             - nouns_lover
             - Nouns_mommy
