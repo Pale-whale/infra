@@ -41,7 +41,6 @@ app:
             - Nouns_mommy
           ops:
             - nouns_lover
-          worldDownloadURL: 'https://drive.usercontent.google.com/download?id=1L6k6np4ziVqAmMOAWWAFy_UR2Gt7Nl3K&export=download&authuser=1'
           storage:
             size: 5Gi
             storageClass: ceph-block
