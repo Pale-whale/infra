@@ -31,8 +31,8 @@ app:
       servers:
         main:
           eula: true
-          # Players entering through the proxy land on a server tagged "lobby".
-          # That is the role, not the name, so it stays put through the rename.
+          # Nothing in the operator reads this one; "lobby" below is the only
+          # tag it acts on. This is here for us.
           tags:
             - main
           version: '26.2'
@@ -88,3 +88,43 @@ app:
               requests:
                 cpu: 500m
                 memory: 1Gi
+        hub:
+          eula: true
+          # The tag, not the name, is what the proxy routes on: players joining
+          # the proxy land on the server tagged "lobby", and are sent to main
+          # from here. Only one server may carry it.
+          tags:
+            - lobby
+          # Kept in step with main so both sides of a transfer speak the same
+          # protocol.
+          version: '26.2'
+          properties:
+            # A hub is somewhere to stand, not somewhere to play: adventure
+            # mode stops players reshaping it, and force-gamemode puts them
+            # back into it whenever they come home from main.
+            difficulty: peaceful
+            gamemode: adventure
+            force-gamemode: 'true'
+            level-name: hub
+          # The lobby is the only gate: Velocity authenticates players but
+          # holds no whitelist of its own, so anyone not listed here would
+          # reach the network and simply be unable to go anywhere.
+          whitelist:
+            - nouns_lover
+            - Nouns_mommy
+          ops:
+            - nouns_lover
+          storage:
+            # Its own claim, named after this server. It has to be a name main
+            # is not already using: main's world is on a claim still called
+            # "lobby", because a Move keeps the claim it took over.
+            size: 5Gi
+            storageClass: ceph-block
+          # A hub holds no world worth generating and no players doing anything
+          # expensive, so it does not need main's budget.
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 1Gi
