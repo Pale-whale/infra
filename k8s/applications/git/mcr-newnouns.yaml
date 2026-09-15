@@ -77,6 +77,10 @@ app:
           plugins:
             - portals-1:1.7.0
             - worldedit:7.4.5
+            - gsit:3.5.1
+            - axgraves:1.31.0
+            - sleep-plugin:1.0.4
+            - thizzyz-tree-feller:1.31.0
           whitelist:
             - nouns_lover
             - Nouns_mommy
