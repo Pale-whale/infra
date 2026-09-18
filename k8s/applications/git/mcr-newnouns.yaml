@@ -97,12 +97,21 @@ app:
             source:
               server: lobby
               mode: Move
+          # Aikar's flags assume a fixed heap (Xms = Xmx) and pre-touch all of
+          # it at start, so the heap is committed up front: request = limit.
+          # The operator caps the heap at 75% of the limit (4.5G here); the
+          # InitialRAMPercentage below pins the initial heap to the same size.
           resources:
             limits:
-              memory: 2Gi
+              memory: 6Gi
             requests:
               cpu: '1'
-              memory: 2Gi
+              memory: 6Gi
+          env:
+            - name: USE_AIKAR_FLAGS
+              value: 'true'
+          jvmOpts:
+            - -XX:InitialRAMPercentage=75
           bluemap:
             ingress:
               className: traefik
