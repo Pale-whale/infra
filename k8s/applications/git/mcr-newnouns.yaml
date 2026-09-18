@@ -99,10 +99,15 @@ app:
               mode: Move
           resources:
             limits:
-              memory: 2Gi
+              memory: 15Gi
             requests:
               cpu: '1'
-              memory: 2Gi
+              memory: 15Gi
+          env:
+            - name: USE_AIKAR_FLAGS
+              value: 'true'
+          jvmOpts:
+            - -XX:InitialRAMPercentage=75
           bluemap:
             ingress:
               className: traefik
