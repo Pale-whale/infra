@@ -19,7 +19,7 @@ app:
       bluemap:
         enabled: true
         database:
-          size: 5Gi
+          size: 20Gi
           storageClassName: ceph-block
           resources:
             limits:
