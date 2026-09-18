@@ -13,6 +13,33 @@ app:
       clusterName: newnouns
       router:
         enable: false
+      # One BlueMap web map for the servers below that set bluemap: true. The
+      # BlueMap plugin on each renders into a CloudNativePG database the
+      # operator creates (newnouns-bluemap-db), and one webserver serves it.
+      bluemap:
+        enabled: true
+        database:
+          size: 5Gi
+          storageClassName: ceph-block
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+        web:
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          ingress:
+            className: traefik
+            host: newnouns.palewhale.fr
+            annotations:
+              external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+              traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
       proxies:
         velocity:
           motd: Welcome to new nouns
@@ -108,17 +135,5 @@ app:
               value: 'true'
           jvmOpts:
             - -XX:InitialRAMPercentage=75
-          bluemap:
-            ingress:
-              className: traefik
-              host: newnouns.palewhale.fr
-              annotations:
-                external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
-                traefik.ingress.kubernetes.io/router.middlewares: traefik-traefik-forward-auth@kubernetescrd
-            resources:
-              limits:
-                cpu: '2'
-                memory: 2Gi
-              requests:
-                cpu: 500m
-                memory: 2Gi
+          # Renders into the cluster's map, with the plugin inside this JVM.
+          bluemap: true
