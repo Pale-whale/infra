@@ -1,0 +1,56 @@
+app:
+  name: llama-swap
+  project: ai
+  source:
+    repoURL: git@github.com:mostlygeek/llama-swap.git
+    targetRevision: v257
+    path: cmd/kubeswap/chart
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai
+  helm:
+    values: |
+      # Pinned: the chart and the kubeswap binary in the image are versioned together.
+      image:
+        tag: unified-cuda13-257
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+      config:
+        top:
+          healthCheckTimeout: 900
+        defaults:
+          image: ghcr.io/mostlygeek/llama-swap:unified-cuda13-257
+          command: llama-server
+          gpu:
+            - nvidia.com/gpu=1
+          # Read-write so llama-server's -hf download populates the shared cache on first load.
+          volumes:
+            - pvc:llama-swap-models:/models
+          extraKubeArgs:
+            - --node-selector node-role.kubernetes.io/nvidia=
+            - --env LLAMA_CACHE=/models
+          startupTimeout: 15m
+          ttl: 1800
+        models:
+          - id: qwen3.5-9b
+            name: Qwen3.5 9B
+            args: --host 0.0.0.0 --port 8080 -hf unsloth/Qwen3.5-9B-GGUF:Q4_K_M -ngl 99 -c 8192
+        matrix:
+          builder: gpu-budget
+          budget: 1
+      extraResources:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: llama-swap-models
+          spec:
+            accessModes:
+              - ReadWriteMany
+            storageClassName: ceph-filesystem
+            resources:
+              requests:
+                storage: 50Gi
