@@ -8,9 +8,11 @@ talos_version = "v1.13.0"
 kubernetes_version = "v1.35.4"
 
 extra_talos_filters = [
-  "i915"
+  "i915",
+  # Driver versions must match; both track the production branch.
+  "nvidia-open-gpu-kernel-modules-production",
+  "nvidia-container-toolkit-production",
 ]
-talos_schematic = "d3dc673627e9b94c6cd4122289aa52c2484cddb31017ae21b75309846e257d30"
 
 default_gateway    = "10.0.0.254"
 dns                = ["10.0.0.254"]

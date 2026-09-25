@@ -1,0 +1,21 @@
+app:
+  name: gpu-operator-namespace
+  project: infra
+  source:
+    repoURL: git@github.com:pale-whale/infra.git
+    targetRevision: HEAD
+    path: k8s/charts/anything
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gpu-operator
+  helm:
+    values: |
+      # NFD and the operands use hostPath/privileged pods, which the default
+      # Talos baseline PodSecurity level rejects. Sync before gpu-operator.
+      namespace:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: gpu-operator
+          labels:
+            pod-security.kubernetes.io/enforce: privileged
