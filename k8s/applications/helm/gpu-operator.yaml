@@ -1,0 +1,22 @@
+app:
+  name: gpu-operator
+  project: infra
+  source:
+    repoURL: https://helm.ngc.nvidia.com/nvidia
+    chart: gpu-operator
+    # Talos v1.13.0 CI tests v26.3.1; stay on that minor.
+    targetRevision: v26.3.3
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gpu-operator
+  helm:
+    values: |
+      # Driver and toolkit come from the Talos system extensions
+      # (nvidia-open-gpu-kernel-modules-production, nvidia-container-toolkit-production),
+      # which also generate the CDI spec on the node.
+      driver:
+        enabled: false
+      toolkit:
+        enabled: false
+      hostPaths:
+        driverInstallDir: /usr/local

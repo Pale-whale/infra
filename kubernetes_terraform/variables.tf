@@ -43,10 +43,6 @@ variable "talos_version" {
   default = "v1.13.0"
 }
 
-variable "talos_schematic" {
-  type = string
-}
-
 variable "extra_talos_filters" {
   type    = list(string)
   default = []
