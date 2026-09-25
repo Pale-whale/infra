@@ -153,6 +153,26 @@ app:
             - '*'
             manualSync: true
       - apiVersion: argoproj.io/v1alpha1
+        kind: AppProject
+        metadata:
+          name: ai
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          description: Holds Open WebUI and llama-swap
+          sourceRepos:
+          - '*'
+          destinations:
+          - namespace: 'ai'
+            server: https://kubernetes.default.svc
+          clusterResourceWhitelist:
+          - group: ''
+            kind: Namespace
+          namespaceResourceBlacklist: []
+          namespaceResourceWhitelist:
+          - group: '*'
+            kind: '*'
+      - apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
           name: root

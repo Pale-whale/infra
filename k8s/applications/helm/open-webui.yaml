@@ -1,0 +1,58 @@
+app:
+  name: open-webui
+  project: ai
+  source:
+    repoURL: https://helm.openwebui.com
+    chart: open-webui
+    targetRevision: 16.6.0
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai
+  helm:
+    values: |
+      ollama:
+        enabled: false
+      pipelines:
+        enabled: false
+      # Single replica: in-memory websocket manager, no Redis.
+      websocket:
+        enabled: true
+        manager: ""
+        redis:
+          enabled: false
+      openaiBaseApiUrl: http://llama-swap.ai.svc:8080/v1
+      ingress:
+        enabled: true
+        class: traefik
+        host: chat.palewhale.fr
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: ceph-block
+      sso:
+        enabled: true
+        enableSignup: true
+        oidc:
+          enabled: true
+          clientId: open-webui
+          clientExistingSecret: open-webui-oidc
+          clientExistingSecretKey: client-secret
+          providerUrl: https://keycloak.palewhale.fr/realms/homelab/.well-known/openid-configuration
+          providerName: Keycloak
+      extraEnvVars:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: open-webui-pg-cluster-app
+              key: uri
+        - name: WEBUI_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: open-webui-secret-key
+              key: secret-key
+      resources:
+        requests:
+          cpu: 100m
+          memory: 1Gi
+        limits:
+          memory: 2Gi

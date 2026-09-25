@@ -1,0 +1,36 @@
+app:
+  name: open-webui-pg
+  project: ai
+  source:
+    repoURL: git@github.com:cloudnative-pg/charts.git
+    targetRevision: cluster-v0.3.1
+    path: charts/cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai
+  helm:
+    values: |
+      cluster:
+        instances: 1
+        initdb:
+          database: openwebui
+          owner: openwebui
+        storage:
+          size: 8Gi
+          storageClass: ceph-block
+        walStorage:
+          enabled: true
+          size: 2Gi
+          storageClass: ceph-block
+        resources:
+          limits:
+            memory: 2Gi
+          requests:
+            cpu: 100m
+            memory: 512Mi
+        logLevel: warning
+        roles:
+          - name: openwebui
+            ensure: present
+            login: true
+            superuser: false

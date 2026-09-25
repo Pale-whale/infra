@@ -1,0 +1,63 @@
+app:
+  name: llama-swap
+  project: ai
+  source:
+    repoURL: git@github.com:mostlygeek/llama-swap.git
+    targetRevision: v257
+    path: cmd/kubeswap/chart
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai
+  helm:
+    values: |
+      # Pinned: the chart and the kubeswap binary in the image are versioned together.
+      image:
+        tag: unified-cuda13-257
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+      config:
+        top:
+          healthCheckTimeout: 900
+          macros:
+            # Sized for a 12 GB card: Qwen3.5-9B Q4_K_M (~5.8 GB) + 16-bit mmproj (~0.9 GB)
+            # + 64K f16 KV (~2 GiB; only 8 of 32 layers are full attention).
+            server_base: --host 0.0.0.0 --port 8080 -ngl 99 -c 65536
+        defaults:
+          image: ghcr.io/mostlygeek/llama-swap:unified-cuda13-257
+          command: llama-server
+          gpu:
+            - nvidia.com/gpu=1
+          # Read-write so llama-server's -hf download populates the shared cache on first load.
+          volumes:
+            - pvc:llama-swap-models:/models
+          extraKubeArgs:
+            - --node-selector node-role.kubernetes.io/nvidia=
+            - --env LLAMA_CACHE=/models
+          startupTimeout: 15m
+          ttl: 1800
+        models:
+          - id: qwen3.5-9b
+            name: Qwen3.5 9B
+            args: ${server_base} -hf unsloth/Qwen3.5-9B-GGUF:Q4_K_M
+          - id: mimo-v2.6-distill-qwen-9b
+            name: MiMo V2.6 Distill Qwen 9B
+            args: ${server_base} -hf bartowski/MiMo-V2.6-Distill-Qwen-9B-GGUF:Q4_K_M
+        matrix:
+          builder: gpu-budget
+          budget: 1
+      extraResources:
+        - apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: llama-swap-models
+          spec:
+            accessModes:
+              - ReadWriteMany
+            storageClassName: ceph-filesystem
+            resources:
+              requests:
+                storage: 50Gi
