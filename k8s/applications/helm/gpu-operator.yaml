@@ -20,3 +20,15 @@ app:
         enabled: false
       hostPaths:
         driverInstallDir: /usr/local
+      devicePlugin:
+        env:
+          # The device plugin writes a CDI spec whose hooks point at
+          # /usr/bin/nvidia-ctk, but the nvidia-container-toolkit extension puts it
+          # under /usr/local/bin. Without this, any pod with an nvidia.com/gpu limit
+          # dies at container create:
+          #   error running createContainer hook #0:
+          #   fork/exec /usr/bin/nvidia-cdi-hook: no such file or directory
+          # Affects Talos >= v1.13, where CDI is enabled by default.
+          # siderolabs/talos#13021. driverInstallDir above does NOT cover this.
+          - name: NVIDIA_CDI_HOOK_PATH
+            value: /usr/local/bin/nvidia-cdi-hook

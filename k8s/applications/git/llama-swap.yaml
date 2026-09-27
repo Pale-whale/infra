@@ -23,9 +23,40 @@ app:
         top:
           healthCheckTimeout: 900
           macros:
-            # Sized for a 12 GB card: Qwen3.5-9B Q4_K_M (~5.8 GB) + 16-bit mmproj (~0.9 GB)
-            # + 64K f16 KV (~2 GiB; only 8 of 32 layers are full attention).
-            server_base: --host 0.0.0.0 --port 8080 -ngl 99 -c 65536
+            # Sized for the 16 GB RTX 2000 Ada (replaced a 12 GB RTX 3060).
+            #
+            # KV is 32 KiB/token at f16. Only 8 of the 32 layers are full attention
+            # (layer_types: 24 linear_attention, 8 full_attention, interval 4); the
+            # linear layers hold a fixed-size state instead of growing with context,
+            # so only those 8 count:
+            #   2 (K+V) x 4 kv_heads x 256 head_dim x 2 B x 8 layers = 32 KiB/token
+            # Checked against the 64K figure this file used to carry: 65536 x 32 KiB
+            # = exactly 2.00 GiB. Handy consequence: 1 GiB of KV = 32768 tokens.
+            #
+            # Fixed cost besides weights: F16 mmproj 0.86 GiB + ~0.4 GiB CUDA context
+            # + ~0.7 GiB compute buffers = ~1.96 GiB. The compute-buffer term is an
+            # estimate, not a measurement -- it is why every entry below keeps >=1.5
+            # GiB spare rather than filling the card.
+            #
+            # Three tiers, since gpu-budget is 1 and only one model is ever resident:
+            #   long context : 9B  Q5_K_M     @ 192K -- largest quant fitting 192K
+            #   max quality  : 9B  Q8_0       @ 96K  -- lossless, buys it with ctx
+            #   big model    : 27B UD-IQ3_XXS @ 32K  -- see server_27b below
+            #
+            # Native context is 262144. 256K does fit with 9B Q4_K_M (~15.4 GiB) but
+            # not with anything better, and the margin is too thin for the estimate
+            # above. server_base / server_hq are for the 9B only.
+            server_base: --host 0.0.0.0 --port 8080 -ngl 99 -c 196608
+            server_hq: --host 0.0.0.0 --port 8080 -ngl 99 -c 98304
+            # Qwen3.8-27B has DOUBLE the KV rate of the 9B: 64 of its layers are
+            # 48 linear_attention + 16 full_attention, so
+            #   2 (K+V) x 4 kv_heads x 256 head_dim x 2 B x 16 layers = 64 KiB/token
+            # i.e. 1 GiB of KV = 16384 tokens, half what the 9B gets. 32K = 2.00 GiB.
+            # Fixed cost is ~2.26 GiB here (0.86 mmproj + ~0.4 CUDA + ~1.0 compute --
+            # raised from the 9B's 0.7 because this has 64 layers rather than 32).
+            #   UD-IQ3_XXS 10.18 + 2.00 KV + 2.26 = ~14.4 GiB, ~1.6 GiB spare.
+            # 48K would be ~15.4 GiB, which the estimate cannot cover.
+            server_27b: --host 0.0.0.0 --port 8080 -ngl 99 -c 32768
         defaults:
           image: ghcr.io/mostlygeek/llama-swap:unified-cuda13-257
           command: llama-server
@@ -40,12 +71,56 @@ app:
           startupTimeout: 15m
           ttl: 1800
         models:
-          - id: qwen3.5-9b
-            name: Qwen3.5 9B
-            args: ${server_base} -hf unsloth/Qwen3.5-9B-GGUF:Q4_K_M
-          - id: mimo-v2.6-distill-qwen-9b
-            name: MiMo V2.6 Distill Qwen 9B
-            args: ${server_base} -hf bartowski/MiMo-V2.6-Distill-Qwen-9B-GGUF:Q4_K_M
+          # Q4_K_M was dropped: Q5_K_M runs at the same 192K for ~0.7-1.0 GiB more, so
+          # Q4_K_M was worse on quality at no context benefit. Every id carries its
+          # quant, because the two tiers are a user-facing choice in the model picker.
+          #
+          #   id                              quant        weights  KV@ctx  total  spare
+          #   qwen3.5-9b-q5                   Q5_K_M        6.13    6.00   14.09   1.91
+          #   mimo-v2.6-distill-qwen-9b-q5    Q5_K_M        6.40    6.00   14.36   1.64
+          #   qwen3.5-9b-q8                   Q8_0          8.87    3.00   13.83   2.17
+          #   mimo-v2.6-distill-qwen-9b-q8    Q8_0          8.89    3.00   13.85   2.15
+          #   qwen3.8-27b-iq3                 UD-IQ3_XXS   10.18    2.00   14.44   1.56
+          #
+          # Disk: these five plus the two 9B mmproj and the 27B mmproj come to ~42 GiB
+          # of the 50Gi PVC. A sixth model needs the volume grown first.
+          #
+          # Every tag here matches exactly one file in its repo. Q6_K is deliberately
+          # avoided: it matches UD-Q6_K_XL (8.16 GiB) in the unsloth repo and three
+          # files (Q6_K_S/Q6_K/Q6_K_L) in the bartowski repo, and
+          # huggingface.co/v2/<repo>/manifest/<tag> 404s for both, so how
+          # `-hf ...:Q6_K` resolves is unverified -- landing on the 8.16 GiB file
+          # would blow the budget. Unique alternatives if you want the middle tier:
+          # Qwen UD-Q6_K_XL @ 128K (14.12 GiB) or MiMo Q6_K_S @ 160K (13.95 GiB).
+          - id: qwen3.5-9b-q5
+            name: Qwen3.5 9B (Q5_K_M, 192K)
+            args: ${server_base} -hf unsloth/Qwen3.5-9B-GGUF:Q5_K_M
+          - id: mimo-v2.6-distill-qwen-9b-q5
+            name: MiMo V2.6 Distill Qwen 9B (Q5_K_M, 192K)
+            args: ${server_base} -hf bartowski/MiMo-V2.6-Distill-Qwen-9B-GGUF:Q5_K_M
+          - id: qwen3.5-9b-q8
+            name: Qwen3.5 9B (Q8_0, 96K)
+            args: ${server_hq} -hf unsloth/Qwen3.5-9B-GGUF:Q8_0
+          - id: mimo-v2.6-distill-qwen-9b-q8
+            name: MiMo V2.6 Distill Qwen 9B (Q8_0, 96K)
+            args: ${server_hq} -hf bartowski/MiMo-V2.6-Distill-Qwen-9B-GGUF:Q8_0
+          # Qwen3.8-27B (27.3B params, dense, same qwen35 arch as the 9B so llama.cpp
+          # handles it identically). At ~3 bits/weight this is an EXPERIMENT, not an
+          # upgrade: below 4 bpw a larger model's advantage over a smaller one at
+          # higher precision stops being reliable, particularly for code and
+          # multi-step reasoning. The UD (unsloth dynamic) quants keep sensitive
+          # tensors at higher precision, which is why only UD variants are considered
+          # here -- do not swap this for a plain IQ3_XXS.
+          #
+          # Also expect it to be slower: decode is memory-bandwidth-bound and 10.18
+          # GiB of weights is ~1.7x the 9B Q5_K_M, so roughly proportionally fewer
+          # tokens/sec on a 70 W card, plus slow prompt processing at 32K.
+          #
+          # UD-IQ3_S (11.21) also fits, but only at 16K and with 1.53 GiB spare --
+          # one quant step is not worth losing half the context and all the margin.
+          - id: qwen3.8-27b-iq3
+            name: Qwen3.8 27B (UD-IQ3_XXS, 32K)
+            args: ${server_27b} -hf unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS
         matrix:
           builder: gpu-budget
           budget: 1
